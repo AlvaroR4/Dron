@@ -4,7 +4,7 @@ from mavsdk import System
 
 async def ejecutar(rover: System):
     print("Esperando conexión al rover...")
-    await rover.connect(system_address="udpin://:14540")
+    await rover.connect(system_address="udp://:14541")
     
     # Verificación opcional de conexión
     async for estado in rover.core.connection_state():
@@ -42,5 +42,5 @@ async def ejecutar(rover: System):
 
 if __name__ == "__main__":
     # Se asume que el servidor MAVSDK está corriendo en localhost:50050
-    rover = System(mavsdk_server_address="localhost", port=50050)
+    rover = System(mavsdk_server_address="localhost", port=50051)
     asyncio.get_event_loop().run_until_complete(ejecutar(rover))
