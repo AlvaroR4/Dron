@@ -1,5 +1,5 @@
 
-#/home/alvaro/.local/lib/python3.10/site-packages/mavsdk/bin/mavsdk_server -p 50050 udp://:14540
+#/home/alvaro/.local/lib/python3.10/site-packages/mavsdk/bin/mavsdk_server -p 50051 udp://:14541
 
 
 #PX4_SYS_AUTOSTART=4009 PX4_GZ_MODEL_POSE="1,1" PX4_SIM_PORT=14540 PX4_SIM_MODEL=gz_r1_rover ./build/px4_sitl_default/bin/px4 -i 1
@@ -13,13 +13,13 @@ from mavsdk import System
 
 async def run(rover):
     print("Esperando conexión...")
-    await rover.connect(system_address="udp://:14540")
+    await rover.connect(system_address="udp://:14541")
 	
     print("Esperando conexión...")
-    #async for state in rover.core.connection_state():
-    #    if state.is_connected:
-    #        print(f"Conectado al rover.")
-    #        break
+    async for state in rover.core.connection_state():
+        if state.is_connected:
+            print(f"Conectado al rover.")
+            break
 
     # Ar#mar el rover
     print("Armando el rover...")
@@ -42,8 +42,8 @@ async def run(rover):
     
 
 
-grpc_port = 50050
-rover = System(mavsdk_server_address="localhost", port=50050)
+grpc_port = 50051
+rover = System(mavsdk_server_address="localhost", port=50051)
 
 asyncio.ensure_future(run(rover))
 asyncio.get_event_loop().run_forever()
