@@ -183,8 +183,8 @@ async def main():
     mavsdk_servers = []
     for i in range(num_drones):
         port = 50040 + i
-    mavsdk_server = subprocess.Popen(["/home/alvaro/.local/lib/python3.10/site-packages/mavsdk/bin/mavsdk_server", "-p", str(port), f"udp://:{udp_ports[i]}" ])        
-    mavsdk_servers.append(mavsdk_server)
+    	mavsdk_server = subprocess.Popen(["/home/alvaro/.local/lib/python3.10/site-packages/mavsdk/bin/mavsdk_server", "-p", str(port), f"udp://:{udp_ports[i]}" ])        
+    	mavsdk_servers.append(mavsdk_server)
         # await asyncio.sleep(1)
 
     tasks = []
