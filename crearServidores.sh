@@ -15,8 +15,9 @@ for ((i=0; i<NUM_INSTANCIAS; i++)); do
     PORT=$((PORT_BASE + i))
     UDP=$((UDP_BASE + i))
     /home/alvaro/.local/lib/python3.10/site-packages/mavsdk/bin/mavsdk_server -p $PORT udp://:$UDP &
-    echo "Lanzada instancia en puerto $PORT y UDP $UDP"
+    echo "Lanzada instancia en puerto TCP $PORT y UDP $UDP"
 done
 
 echo "Todas las instancias han sido lanzadas."
+
 
