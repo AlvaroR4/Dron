@@ -19,6 +19,9 @@ ss -ulnp
 sudo lsof -i :14541
 sudo tcpdump -i any port 14540
 
+--Comandos en PX4
+mavlink status
+logger status
 
 --PATH gz sim
 export GZ_SIM_RESOURCE_PATH=~/Dron/PX4-Autopilot/Tools/simulation/gz/models:~/Dron/PX4-Autopilot/Tools/simulation/gz/worlds:$GZ_SIM_RESOURCE_PATH
