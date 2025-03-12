@@ -7,3 +7,6 @@ https://docs.px4.io/v1.12/en/simulation/gazebo_vehicles.html
 
 --Mundos gazebo
 https://github.com/leonhartyao/gazebo_models_worlds_collection/tree/master
+
+--Camara
+https://www.youtube.com/watch?v=ZfiJhiA1ksA
