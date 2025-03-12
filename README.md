@@ -50,7 +50,7 @@ Este comando genera la cantidad de servidores de MAVSDK necesarios para la simul
 
 
 ### 🛠️ crearRovers.sh y crearDrones.sh
-Estos scripts permiten la creación de instancias de rovers o drones en PX4, pero aún falta ajustar las rutas de los directorios en los scripts para que funcionen correctamente.
+Estos scripts permiten la creación de instancias de rovers o drones en PX4, falta mejorarlos para que primero se cree una instancia, espere un tiempo y luego cree el resto
 
 
 
