@@ -1,7 +1,7 @@
 """Primero arrancar QGroundControl y 3 instancias de rovers en PX4;
-PX4_SYS_AUTOSTART=4009 PX4_GZ_MODEL_POSE="1,1 PX4_SIM_MODEL=gz_r1_rover ./build/px4_sitl_default/bin/px4 -i 1
-PX4_SYS_AUTOSTART=4009 PX4_GZ_MODEL_POSE="2,1 PX4_SIM_MODEL=gz_r1_rover ./build/px4_sitl_default/bin/px4 -i 2
-PX4_SYS_AUTOSTART=4009 PX4_GZ_MODEL_POSE="1,1 PX4_SIM_MODEL=gz_r1_rover ./build/px4_sitl_default/bin/px4 -i 3
+PX4_SYS_AUTOSTART=4009 PX4_GZ_MODEL_POSE="1,1" PX4_SIM_MODEL=gz_r1_rover ./build/px4_sitl_default/bin/px4 -i 1
+PX4_SYS_AUTOSTART=4009 PX4_GZ_MODEL_POSE="2,1" PX4_SIM_MODEL=gz_r1_rover ./build/px4_sitl_default/bin/px4 -i 2
+PX4_SYS_AUTOSTART=4009 PX4_GZ_MODEL_POSE="1,1" PX4_SIM_MODEL=gz_r1_rover ./build/px4_sitl_default/bin/px4 -i 3
 
 Comprobar con mavlink status los puertos, pero teoricamente se conectaras en 14541,14542,14543
 Arrancar 3 mavsdk_server;
