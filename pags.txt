@@ -2,4 +2,8 @@ https://github.com/mavlink/MAVSDK-Python/tree/main/examples
 
 https://docs.px4.io/main/en/sim_gazebo_gz/
 
+--Vehiculos
 https://docs.px4.io/v1.12/en/simulation/gazebo_vehicles.html
+
+--Mundos gazebo
+https://github.com/leonhartyao/gazebo_models_worlds_collection/tree/master
