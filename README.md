@@ -57,21 +57,15 @@ Estos scripts permiten la creación de instancias de rovers o drones en PX4, per
 
 ![Descripción](Media/1.gif)
 
-
-## Códigos en desarrollo:
-
-Archivos variosDrones.py y variosRovers.py iguales que 3drones.py y 3rovers.py, falta probarlos
-
-Códigos para la creación automática de servidores e instancias de rovers o drones en /Crear, falta probarlos
-
-## Requisitos Previos
+## Ejemplos de simulación con 3rovers.py/3drones.py
+### Requisitos Previos
 
 - [PX4 Autopilot](https://px4.io/)
 - [Gazebo](https://gazebosim.org/)
 - [QGroundControl](https://qgroundcontrol.com/)
 - [MAVSDK-Python](https://mavsdk.mavlink.io/main/en/python/)
 
-## Simulación de Rovers
+### Simulación de Rovers
 
 1. Arrancar QGroundControl.
 2. Iniciar 3 instancias de rovers en PX4:
@@ -99,7 +93,7 @@ Códigos para la creación automática de servidores e instancias de rovers o dr
     python3 Dron/Rover/3rovers.py
     ```
 
-## Simulación de Drones
+### Simulación de Drones
 
 1. Arrancar QGroundControl.
 2. Iniciar 3 instancias de drones en PX4:
