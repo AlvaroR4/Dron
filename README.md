@@ -28,7 +28,7 @@ Cada dron se conecta, se arma y despega.
 Se mueve a una posición específica y luego vuelve a su punto de inicio.
 
 
-(Ambas simulaciones, dependiendo de la posición de inicio pueden colisionar)
+(Ambas simulaciones, dependiendo de la posición de inicio, pueden colisionar) 😁
 
 ![Descripción](Media/1.gif)
 
