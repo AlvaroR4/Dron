@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#chmod +x crearRovers.sh
+
 # Verificar que se haya proporcionado un número como parámetro
 if [ -z "$1" ]; then
   echo "Por favor, proporciona el número de rovers como argumento."
