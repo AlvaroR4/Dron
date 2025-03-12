@@ -35,7 +35,7 @@ Se mueve a una posición específica y luego vuelve a su punto de inicio.
 
 ### 🚁🏎️ variosDrones.py y variosRovers.py
 Estos scripts permiten simular múltiples drones o rovers en PX4 de manera dinámica. Se ejecutan como:
-    ```sh
+    ```
     ./variosDrones.py <número_de_drones>
     ./variosRovers.py <número_de_rovers>
     ```
@@ -44,7 +44,7 @@ Donde <número_de_drones> o <número_de_rovers> es el número de drones o rovers
 
 ### 🛠️crearServidores.sh <num_servidores>
 Este comando genera la cantidad de servidores de MAVSDK necesarios para la simulación de los rovers o drones.
-    ```sh
+    ```
     ./crearServidores.sh <num_servidores>
     ```
 
