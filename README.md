@@ -30,6 +30,9 @@ Se mueve a una posición específica y luego vuelve a su punto de inicio.
 
 (Ambas simulaciones, dependiendo de la posición de inicio pueden colisionar)
 
+![Descripción](Media/1.gif)
+
+
 ## Códigos en desarrollo:
 
 Archivos variosDrones.py y variosRovers.py iguales que 3drones.py y 3rovers.py, falta probarlos
