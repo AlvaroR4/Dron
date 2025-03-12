@@ -99,6 +99,8 @@ Códigos para la creación automática de servidores e instancias de rovers o dr
     ```
 
 ## Autor
-
 Álvaro Ros - Simulación con PX4, Gazebo y MAVSDK
+
+## Licencia
+Este proyecto está bajo la **Licencia MIT**. Consulta el archivo `LICENSE` para más detalles.
 
