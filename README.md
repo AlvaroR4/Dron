@@ -42,7 +42,7 @@ Estos scripts permiten simular múltiples drones o rovers en PX4 de manera diná
 Donde <número_de_drones> o <número_de_rovers> es el número de drones o rovers que deseas simular. Su funcionamiento es similar a los scripts 3drones.py y 3rovers.py, pero con el número de drones o rovers indicado en el parámetro de ejecución.
 
 
-### 🛠️crearServidores.sh <num_servidores>
+### 🛠️crearServidores.sh
 Este comando genera la cantidad de servidores de MAVSDK necesarios para la simulación de los rovers o drones.
     ```
     ./crearServidores.sh <num_servidores>
@@ -53,9 +53,6 @@ Este comando genera la cantidad de servidores de MAVSDK necesarios para la simul
 Estos scripts permiten la creación de instancias de rovers o drones en PX4, pero aún falta ajustar las rutas de los directorios en los scripts para que funcionen correctamente.
 
 
-(Ambas simulaciones, dependiendo de la posición de inicio, pueden colisionar) 😁
-
-![Descripción](Media/1.gif)
 
 ## Ejemplos de simulación con 3rovers.py/3drones.py
 ### Requisitos Previos
@@ -116,6 +113,11 @@ Estos scripts permiten la creación de instancias de rovers o drones en PX4, per
     ```sh
     python3 Dron/MultiplesDrones/3drones.py
     ```
+
+(Ambas simulaciones, dependiendo de la posición de inicio, pueden colisionar) 😁
+
+![Descripción](Media/1.gif)
+
 
 ## Autor
 Álvaro Ros - Simulación con PX4, Gazebo y MAVSDK
