@@ -12,6 +12,22 @@ Dron/
 │── MultiplesDrones/
 │   └── 3drones.py
 ```
+### 🏎️ 3rovers.py
+Este script controla varios rovers en una simulación con PX4 y MAVSDK.
+
+Arranca las instancias de los rovers en PX4 y configura los servidores MAVSDK para cada uno.
+Cada rover se conecta, se arma y "despega".
+Se mueven independientemente a una posición específica y luego regresan al punto de inicio.
+Finalmente "aterrizan".
+
+### 🚁 3drones.py
+Este script hace lo mismo que 3rovers.py, pero con drones en lugar de rovers.
+
+Arranca las instancias de drones en PX4.
+Cada dron se conecta, se arma y despega.
+Se mueve a una posición específica y luego vuelve a su punto de inicio.
+
+(Ambas simulaciones, dependiendo de la posición de inicio pueden colisionar)
 
 ## Códigos en desarrollo:
 
