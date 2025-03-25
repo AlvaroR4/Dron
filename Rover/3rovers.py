@@ -1,7 +1,10 @@
 """Primero arrancar QGroundControl y 3 instancias de rovers en PX4;
 PX4_SYS_AUTOSTART=4009 PX4_GZ_MODEL_POSE="1,1" PX4_SIM_MODEL=gz_r1_rover ./build/px4_sitl_default/bin/px4 -i 1
 PX4_SYS_AUTOSTART=4009 PX4_GZ_MODEL_POSE="2,1" PX4_SIM_MODEL=gz_r1_rover ./build/px4_sitl_default/bin/px4 -i 2
-PX4_SYS_AUTOSTART=4009 PX4_GZ_MODEL_POSE="1,1" PX4_SIM_MODEL=gz_r1_rover ./build/px4_sitl_default/bin/px4 -i 3
+PX4_SYS_AUTOSTART=4009 PX4_GZ_MODEL_POSE="3,1" PX4_SIM_MODEL=gz_r1_rover ./build/px4_sitl_default/bin/px4 -i 3
+
+Se puede comprobar el tráfico de los puertos con 
+sudo tcpdump -i any port 14540
 
 Comprobar con mavlink status los puertos, pero teoricamente se conectaras en 14541,14542,14543
 Arrancar 3 mavsdk_server;
@@ -65,8 +68,8 @@ async def main():
 
     await asyncio.gather(
         run_rover(rover1, 50040, 10, 5, 5),  # Se mueve 5m en X y 5m en Y
-        run_rover(rover2, 50041, 12, -5, 5), # Se mueve -5m en X y 5m en Y
-        run_rover(rover3, 50042, 15, 5, -5)  # Se mueve 5m en X y -5m en Y
+        run_rover(rover2, 50041, 12, 5, 5), # Se mueve 5m en X y 5m en Y
+        run_rover(rover3, 50042, 20, 5, -5)  # Se mueve 5m en X y -5m en Y
     )
 
 if __name__ == "__main__":
