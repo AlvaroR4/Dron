@@ -69,7 +69,7 @@ async def main():
     await asyncio.gather(
         run_rover(rover1, 50040, 10, 5, 5),  # Se mueve 5m en X y 5m en Y
         run_rover(rover2, 50041, 12, 5, 5), # Se mueve 5m en X y 5m en Y
-        run_rover(rover3, 50042, 20, 5, -5)  # Se mueve 5m en X y -5m en Y
+        run_rover(rover3, 50042, 20, 5, 5)  # Se mueve 5m en X y 5m en Y
     )
 
 if __name__ == "__main__":
