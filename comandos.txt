@@ -27,3 +27,19 @@ logger status
 export GZ_SIM_RESOURCE_PATH=~/Dron/PX4-Autopilot/Tools/simulation/gz/models:~/Dron/PX4-Autopilot/Tools/simulation/gz/worlds:$GZ_SIM_RESOURCE_PATH
 
 
+
+
+---PARA VISUALIZAR LA CÁMARA CON ROS2 Y RQT
+Lanzar dron con cámara;  make px4_sitl gz_x500_mono_cam
+Ejecutar el agente para que se conecte con el cliente del dron; MicroXRCEAgent udp4 -p 8888
+Lanzar el brigde de ros2 con la cámara; ros2 run ros_gz_image image_bridge /world/default/model/x500_mono_cam_0/link/camera_link/sensor/imager/image
+Abrir rqt y visualizar el topic de la cámara; rqt
+Para visualizar el gazebo suscribirse a image display
+
+---PARA LEER UN TOPIC
+ros2 topic echo /fmu/out/vehicle_odometry
+
+---SI NO ENCUENTRA LOS MENSAJES
+para cualquier configuración relacionarlo con la carpeta install del paquete; source ws_sensor_combined/install/setup.sh
+
+
