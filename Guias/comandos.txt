@@ -42,7 +42,7 @@ ros2 topic echo /fmu/out/vehicle_odometry
 ---SI NO ENCUENTRA LOS MENSAJES
 para cualquier configuración relacionarlo con la carpeta install del paquete; source ws_sensor_combined/install/setup.sh
 
-para ros_gz; source ws/install/setup.bash
+para ros_gz; source ws/install/setup.sh
 
 ---Comandos ros2:
 ros2 topic list
@@ -51,7 +51,7 @@ ros2 pkg list
 ---Para añadir todos los source necesarios al bash inicial que se cargar al abrir un nuevo terminal; 
 gedit ~/.bashrc
 //Introducir al final:
-source ~/ws/install/setup.bash
-source ~/ws_sensor_combined/install/setup.bash
+source ~/ws/install/setup.sh
+source ~/ws_sensor_combined/install/setup.sh
 
 
