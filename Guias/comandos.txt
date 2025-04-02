@@ -48,4 +48,10 @@ para ros_gz; source ws/install/setup.bash
 ros2 topic list
 ros2 pkg list
 
+---Para añadir todos los source necesarios al bash inicial que se cargar al abrir un nuevo terminal; 
+gedit ~/.bashrc
+//Introducir al final:
+source ~/ws/install/setup.bash
+source ~/ws_sensor_combined/install/setup.bash
+
 
