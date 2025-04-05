@@ -8,9 +8,14 @@ make px4_sitl
 
 ---INSTALAR QGroundControl
 
+sudo usermod -a -G dialout $USER
+sudo apt-get remove modemmanager -y
+sudo apt install gstreamer1.0-plugins-bad gstreamer1.0-libav gstreamer1.0-gl -y
+sudo apt install libfuse2 -y
+sudo apt install libxcb-xinerama0 libxkbcommon-x11-0 libxcb-cursor-dev -y
+
 wget https://github.com/mavlink/qgroundcontrol/releases/download/v4.4.4/QGroundControl.AppImage
 chmod +x QGroundControl.AppImage
-./QGroundControl.AppImage
 
 ---INSTALAR MAVSDK-Python
 
@@ -63,6 +68,8 @@ source /opt/ros/humble/setup.bash
 colcon build
 
 ---INSTALAR ros_gz
+
+export GZ_VERSION=harmonic
 
 mkdir -p ~/ws/src
 cd ~/ws/src
