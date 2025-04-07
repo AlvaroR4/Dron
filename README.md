@@ -7,6 +7,8 @@ Este repositorio contiene scripts para la simulación de múltiples drones y rov
 
 ```
 Dron/
+│── UnDron/
+│   ├── dron.py
 │── Rover/
 │   ├── 3rovers.py
 │   ├── variosRovers.py
@@ -14,8 +16,6 @@ Dron/
 │   ├── 3drones.py
 │   ├── variosDrones.py
 │── Crear/
-│   ├── crearRovers.sh
-│   ├── crearDrones.sh
 │   ├── crearServidores.sh
 ```
 ### 🏎️ 3rovers.py
@@ -25,6 +25,9 @@ Arranca las instancias de los rovers en PX4 y configura los servidores MAVSDK pa
 Cada rover se conecta, se arma y "despega".
 Se mueven independientemente a una posición específica y luego regresan al punto de inicio.
 Finalmente "aterrizan".
+
+### 🚁 dron.py
+Este script sencillo controla un dron con comandos de posición y velocidad sin necesidad de usar mavsdk_server
 
 ### 🚁 3drones.py
 Este script hace lo mismo que 3rovers.py, pero con drones en lugar de rovers.
@@ -47,12 +50,6 @@ Este comando genera la cantidad de servidores de MAVSDK necesarios para la simul
     ```
     ./crearServidores.sh <num_servidores>
     ```
-
-
-### 🛠️ crearRovers.sh y crearDrones.sh
-Estos scripts permiten la creación de instancias de rovers o drones en PX4, falta mejorarlos para que primero se cree una instancia, espere un tiempo y luego cree el resto
-
-
 
 ## Ejemplos de simulación con 3rovers.py/3drones.py
 ### Requisitos Previos
