@@ -43,16 +43,16 @@ async def run():
 
     print("-- Go up 2 m/s")
     await drone.offboard.set_velocity_ned(VelocityNedYaw(0.0, 0.0, -2.0, 0.0))
-    await asyncio.sleep(4)
+    await asyncio.sleep(5)
 
     print("-- Go North 2 m/s, turn to face East")
     await drone.offboard.set_velocity_ned(VelocityNedYaw(2.0, 0.0, 0.0, 90.0))
-    await asyncio.sleep(4)
+    await asyncio.sleep(100)
 
     print("-- Go South 2 m/s, turn to face West")
     await drone.offboard.set_velocity_ned(
         VelocityNedYaw(-2.0, 0.0, 0.0, 270.0))
-    await asyncio.sleep(4)
+    await asyncio.sleep(40)
 
     print("-- Go West 2 m/s, turn to face East")
     await drone.offboard.set_velocity_ned(VelocityNedYaw(0.0, -2.0, 0.0, 90.0))
