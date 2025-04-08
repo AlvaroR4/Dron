@@ -55,22 +55,21 @@ class ImageSubscriber(Node):
         cv2.waitKey(1)
 
 async def moverDron(offset_x, offset_y, drone):
-    tolerancia = 10  # píxeles
+    tolerancia = 1  # píxeles
 
     if abs(offset_x) < tolerancia and abs(offset_y) < tolerancia:
-        print("🟢 Dron centrado con la puerta")
+        print("Dron centrado con la puerta")
         await drone.offboard.set_velocity_ned(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
         return
 
-    velocidad_x = 0.5 if offset_y > tolerancia else (-0.5 if offset_y < -tolerancia else 0.0)
-    velocidad_y = 0.5 if offset_x > tolerancia else (-0.5 if offset_x < -tolerancia else 0.0)
+    velocidad_x = 0
+    velocidad_y = 0
     velocidad_z = 0
-
     yaw = 0.0 
 
     print(f"Moviendo dron → Vel NED: x={velocidad_x}, y={velocidad_y}, z={velocidad_z}, yaw={yaw}")
 
-    await drone.offboard.set_velocity_ned(VelocityBodyYawspeed(velocidad_x, velocidad_y, 0.0, yaw))
+    await drone.offboard.set_velocity_ned(VelocityBodyYawspeed(velocidad_x, velocidad_y, velocidad_z, yaw))
  
 def main(args=None):
     rclpy.init(args=args)
