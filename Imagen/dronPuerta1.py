@@ -11,6 +11,46 @@ import asyncio
 from mavsdk import System
 from mavsdk.offboard import (OffboardError, VelocityBodyYawspeed)
 
+drone = System()  # Objeto global del dron
+
+async def iniciar_drone():
+    global drone
+    await drone.connect(system_address="udp://:14540")
+
+    print("Waiting for drone to connect...")
+    async for state in drone.core.connection_state():
+        if state.is_connected:
+            print("-- Connected to drone!")
+            break
+
+    print("Waiting for drone to have a global position estimate...")
+    async for health in drone.telemetry.health():
+        if health.is_global_position_ok and health.is_home_position_ok:
+            print("-- Global position estimate OK")
+            break
+
+    print("-- Arming")
+    await drone.action.arm()
+
+    print("-- Setting initial setpoint")
+    await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
+
+    print("-- Starting offboard")
+    try:
+        await drone.offboard.start()
+    except OffboardError as error:
+        print(f"Starting offboard failed: {error._result.result}")
+        await drone.action.disarm()
+
+async def fin_drone():
+    print("-- Stopping offboard")
+    try:
+        await drone.offboard.stop() 
+    except OffboardError as error:
+        print(f"Stopping offboard mode failed with error code: {error._result.result}")
+
+    await drone.action.land()
+
 class ImageSubscriber(Node):
     def __init__(self):
         super().__init__('image_subscriber')
@@ -54,12 +94,12 @@ class ImageSubscriber(Node):
 
         cv2.waitKey(1)
 
-async def moverDron(offset_x, offset_y, drone):
+async def moverDron(offset_x, offset_y):
     tolerancia = 1  # píxeles
 
     if abs(offset_x) < tolerancia and abs(offset_y) < tolerancia:
         print("Dron centrado con la puerta")
-        await drone.offboard.set_velocity_ned(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
+        await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
         return
 
     velocidad_x = 0
@@ -67,16 +107,29 @@ async def moverDron(offset_x, offset_y, drone):
     velocidad_z = 0
     yaw = 0.0 
 
-    print(f"Moviendo dron → Vel NED: x={velocidad_x}, y={velocidad_y}, z={velocidad_z}, yaw={yaw}")
+    print(f"Moviendo dron: x={velocidad_x}, y={velocidad_y}, z={velocidad_z}, yaw={yaw}")
 
-    await drone.offboard.set_velocity_ned(VelocityBodyYawspeed(velocidad_x, velocidad_y, velocidad_z, yaw))
- 
+    await drone.offboard.set_velocity_body(VelocityBodyYawspeed(velocidad_x, velocidad_y, velocidad_z, yaw))
+
+"""
+Ejemplo de función para mover; 
+
+  void goTowards(float px, float py, float speed){
+    float dx = px;
+    float dy = py;
+    float dist = sqrt(dx*dx + dy*dy);
+    x += dx / dist * speed;
+    y += dy / dist * speed;
+  }
+"""
 def main(args=None):
     rclpy.init(args=args)
+    asyncio.run(iniciar_drone())
     image_subscriber = ImageSubscriber()
     rclpy.spin(image_subscriber)
     image_subscriber.destroy_node()
     rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()
