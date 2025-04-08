@@ -23,11 +23,16 @@ async def iniciar_drone():
             print("-- Connected to drone!")
             break
 
-    print("Waiting for drone to have a global position estimate...")
+    print("Waiting for drone to be armable...")
     async for health in drone.telemetry.health():
-        if health.is_global_position_ok and health.is_home_position_ok:
-            print("-- Global position estimate OK")
+        print(f"-- Health: {health}")
+        if health.is_global_position_ok and health.is_home_position_ok and health.is_armable:
             break
+        await asyncio.sleep(1)
+
+    async for mode in drone.telemetry.flight_mode():
+        print(f"-- Flight Mode: {mode}")
+        break
 
     print("-- Arming")
     await drone.action.arm()
@@ -41,6 +46,11 @@ async def iniciar_drone():
     except OffboardError as error:
         print(f"Starting offboard failed: {error._result.result}")
         await drone.action.disarm()
+
+    print("-- Despego")
+    await drone.offboard.set_velocity_body(
+        VelocityBodyYawspeed(0.0, 0.0, -2.0, 0.0))
+    await asyncio.sleep(5)
 
 async def fin_drone():
     print("-- Stopping offboard")
@@ -102,9 +112,14 @@ async def moverDron(offset_x, offset_y):
         await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
         return
 
+    speed = 1.5
+    dx = offset_x
+    dy = offset_y
+
+    dist = (dx**2 + dy**2) ** 0.5
     velocidad_x = 0
-    velocidad_y = 0
-    velocidad_z = 0
+    velocidad_y = dx / dist * speed
+    velocidad_z = dy / dist * speed
     yaw = 0.0 
 
     print(f"Moviendo dron: x={velocidad_x}, y={velocidad_y}, z={velocidad_z}, yaw={yaw}")
@@ -124,7 +139,9 @@ Ejemplo de función para mover;
 """
 def main(args=None):
     rclpy.init(args=args)
+    print("-- Comienzo fase inicio dron")
     asyncio.run(iniciar_drone())
+    print("-- Fin fase inicio dron")
     image_subscriber = ImageSubscriber()
     rclpy.spin(image_subscriber)
     image_subscriber.destroy_node()
