@@ -1,0 +1,256 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<sdf version="1.9">
+  <world name="puerta">
+    <physics type="ode">
+      <max_step_size>0.004</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+      <real_time_update_rate>250</real_time_update_rate>
+    </physics>
+    <gravity>0 0 -9.8</gravity>
+    <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
+    <atmosphere type="adiabatic"/>
+    <scene>
+      <grid>false</grid>
+      <ambient>0.4 0.4 0.4 1</ambient>
+      <background>0.7 0.7 0.7 1</background>
+      <shadows>true</shadows>
+    </scene>
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>1 1</size>
+            </plane>
+          </geometry>
+          <surface>
+            <friction>
+              <ode/>
+            </friction>
+            <bounce/>
+            <contact/>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>500 500</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <pose>0 0 0 0 -0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 -0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>0 0 0 0 -0 0</pose>
+      <self_collide>false</self_collide>
+    </model>
+    <model name="puerta_marco_con_soporte">
+      <static>true</static>
+
+      <!-- Soporte (palo central que sujeta al marco al suelo) -->
+      <!-- Dimensiones: 0.1 x 0.1 x 0.5, con su base en z=0 y tope en z=0.5 -->
+      <link name="soporte">
+        <pose>0 0 0.25 0 0 0</pose>
+        <collision name="col_soporte">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.5</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="vis_soporte">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.5</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <!-- Marco: compuesto de 4 barras que forman un cuadrado hueco -->
+      <!-- Se ubica elevado para que su parte inferior se asiente sobre el soporte -->
+      <!-- Para un marco de 1 m x 1 m, con barras de 0.1 m de grosor, definimos: -->
+      <!-- - Barra inferior: centro en (0,0,0.55), extiende de z=0.5 a z=0.6 -->
+      <!-- - Barra superior: centro en (0,0,1.55), extiende de z=1.5 a z=1.6 -->
+      <!-- - Barra izquierda: centro en (-0.45,0,1.0), extiende en x de -0.5 a -0.4 -->
+      <!-- - Barra derecha: centro en (0.45,0,1.0), extiende en x de 0.4 a 0.5 -->
+
+      <!-- Barra inferior (horizontal) -->
+      <link name="barra_inferior">
+        <pose>0 0 0.55 0 0 0</pose>
+        <collision name="col_inferior">
+          <geometry>
+            <box>
+              <size>1.0 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="vis_inferior">
+          <geometry>
+            <box>
+              <size>1.0 0.1 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <!-- Barra superior (horizontal) -->
+      <link name="barra_superior">
+        <pose>0 0 1.55 0 0 0</pose>
+        <collision name="col_superior">
+          <geometry>
+            <box>
+              <size>1.0 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="vis_superior">
+          <geometry>
+            <box>
+              <size>1.0 0.1 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <!-- Barra izquierda (vertical) -->
+      <link name="barra_izquierda">
+        <pose>-0.45 0 1.0 0 0 0</pose>
+        <collision name="col_izquierda">
+          <geometry>
+            <box>
+              <size>0.1 0.1 1.0</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="vis_izquierda">
+          <geometry>
+            <box>
+              <size>0.1 0.1 1.0</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <!-- Barra derecha (vertical) -->
+      <link name="barra_derecha">
+        <pose>0.45 0 1.0 0 0 0</pose>
+        <collision name="col_derecha">
+          <geometry>
+            <box>
+              <size>0.1 0.1 1.0</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="vis_derecha">
+          <geometry>
+            <box>
+              <size>0.1 0.1 1.0</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <!-- Joints para unir las partes del marco y el soporte -->
+      <!-- Se usan joints fijos para que actúen como una única estructura -->
+
+      <!-- Junta entre el soporte y la barra inferior -->
+      <joint name="joint_soporte_inferior" type="fixed">
+        <parent>soporte</parent>
+        <child>barra_inferior</child>
+        <!-- La unión se realiza en el punto donde la parte superior del soporte (z=0.5) coincide aproximadamente con la parte inferior de la barra inferior (z=0.5) -->
+        <pose>0 0 0.3 0 0 0</pose>
+      </joint>
+
+      <!-- Junta entre la barra inferior y la barra izquierda -->
+      <joint name="joint_inferior_izquierda" type="fixed">
+        <parent>barra_inferior</parent>
+        <child>barra_izquierda</child>
+        <!-- La unión se realiza en el borde izquierdo de la barra inferior -->
+        <pose>-0.5 0 0 0 0 0</pose>
+      </joint>
+
+      <!-- Junta entre la barra inferior y la barra_derecha -->
+      <joint name="joint_inferior_derecha" type="fixed">
+        <parent>barra_inferior</parent>
+        <child>barra_derecha</child>
+        <pose>0.5 0 0 0 0 0</pose>
+      </joint>
+
+      <!-- Junta entre la barra inferior y la barra superior -->
+      <joint name="joint_inferior_superior" type="fixed">
+        <parent>barra_inferior</parent>
+        <child>barra_superior</child>
+        <pose>0 0 1 0 0 0</pose>
+      </joint>
+
+      <pose>5 0 0 0 0 0</pose>
+    </model>
+    <light name="sunUTC" type="directional">
+      <pose>0 0 500 0 -0 0</pose>
+      <cast_shadows>true</cast_shadows>
+      <intensity>1</intensity>
+      <direction>0.001 0.625 -0.78</direction>
+      <diffuse>0.904 0.904 0.904 1</diffuse>
+      <specular>0.271 0.271 0.271 1</specular>
+      <attenuation>
+        <range>2000</range>
+        <linear>0</linear>
+        <constant>1</constant>
+        <quadratic>0</quadratic>
+      </attenuation>
+      <spot>
+        <inner_angle>0</inner_angle>
+        <outer_angle>0</outer_angle>
+        <falloff>0</falloff>
+      </spot>
+    </light>
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <world_frame_orientation>ENU</world_frame_orientation>
+      <latitude_deg>47.397971057728974</latitude_deg>
+      <longitude_deg> 8.546163739800146</longitude_deg>
+      <elevation>0</elevation>
+    </spherical_coordinates>
+  </world>
+</sdf>
