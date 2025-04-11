@@ -20,8 +20,9 @@ SERVER_IP = "127.0.0.1"  # Dirección local (localhost)
 SERVER_PORT = 65432       # Puerto donde enviará los datos
 
 
-async def send_position(x,y):
-    """ Envía la posición del rover cada 2 segundos a un servidor UDP """
+async def send_position(x, y):
+    """Envía la posición del rover cada 2 segundos a un servidor UDP"""
+    print("1111111111111111")
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
         while True:
             current_x = x
@@ -29,11 +30,11 @@ async def send_position(x,y):
             message = f"{current_x},{current_y}"
                 
             # Enviar mensaje al servidor
+            print("222222222222")
             sock.sendto(message.encode(), (SERVER_IP, SERVER_PORT))
-            print(f"📤 Posición enviada: {message}")
+            print(f"Posición enviada: {message}")
 
-            await asyncio.sleep(1)  # Enviar posición cada 2 segundos
-            break  # Salir del `async for` después de la primera lectura
+            await asyncio.sleep(2)  # Enviar posición cada 2 segundos
 
 async def iniciar_drone():
     global drone
@@ -119,7 +120,8 @@ class ImageSubscriber(Node):
                 cv2.drawContours(imgRGB, [c], -1, (0,255,0), 3)
                 offset_x = cX - center_x
                 offset_y = cY - center_y
-                send_position(offset_x, offset_y)
+                print(f"Enviando {offset_x}, {offset_y}")
+                asyncio.create_task(send_position(offset_x, offset_y))
                 #moverDron(offset_x, offset_y)
                 cv2.putText(imgRGB, f"x_off: {offset_x}, y_off: {offset_y}", (cX - 20, cY - 20),
                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
@@ -164,7 +166,7 @@ Ejemplo de función para mover;
 def main(args=None):
     rclpy.init(args=args)
     print("-- Comienzo fase inicio dron")
-    asyncio.run(iniciar_drone())
+    #asyncio.run(iniciar_drone())
     print("-- Fin fase inicio dron")
     image_subscriber = ImageSubscriber()
     rclpy.spin(image_subscriber)
