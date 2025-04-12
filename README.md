@@ -20,6 +20,9 @@ Dron/
 │── Imagen/
 │   ├── tratarImagen2.py
 │   ├── mover.py
+│   ├── camaraReal/
+│       ├── publicador_camara.py
+│       ├── tratarImagen3.py
 ```
 ### 🏎️ 3rovers.py
 Este script controla varios rovers en una simulación con PX4 y MAVSDK.
@@ -63,6 +66,16 @@ Utiliza hilos para enviar las coordenadas cada x segs
 ### 🚁 mover.py (En desarrollo)
 Este script recibe coordenadas x,y a través de un socket
 Trata de alinear el dron respecto al centroide de un objeto para pasar a través de él
+
+### 🏎️ publicador_camara3.py
+Este script publica en un topic las imagenes de una cámara física
+Se puede elegir la propia cámara del pc, o una externa
+
+### 🚁 tratarImagen3.py
+Este script recibe el topic de una cámra real y la procesa
+Busca objetos de color rojo y calcula el offset a su centroide
+Una vez calculado el centroide, envia offset_x y offset_y a través de un socket
+Utiliza hilos para enviar las coordenadas cada x segs
 
 ## Ejemplos de simulación con 3rovers.py/3drones.py
 ### Requisitos Previos
