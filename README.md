@@ -54,6 +54,15 @@ Este comando genera la cantidad de servidores de MAVSDK necesarios para la simul
     ./crearServidores.sh <num_servidores>
     ```
 
+### 🏎️ tratarImagen2.py
+Este script recibe el topic ROS2 de una cámra y la procesa
+Busca objetos de color rojo y calcula el offset a su centroide
+Una vez calculado el centroide, envia offset_x y offset_y a través de un socket
+
+### 🚁 mover.py (En desarrollo)
+Este script recibe coordenadas x,y a través de un socket
+Trata de alinear el dron respecto al centroide de un objeto para pasar a través de él
+
 ## Ejemplos de simulación con 3rovers.py/3drones.py
 ### Requisitos Previos
 
