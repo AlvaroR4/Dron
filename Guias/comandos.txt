@@ -27,21 +27,37 @@ logger status
 export GZ_SIM_RESOURCE_PATH=~/Dron/PX4-Autopilot/Tools/simulation/gz/models:~/Dron/PX4-Autopilot/Tools/simulation/gz/worlds:$GZ_SIM_RESOURCE_PATH
 
 
-
+-----------------DRON CON CÁMARA-----------------
 
 ---PARA VISUALIZAR LA CÁMARA CON ROS2 Y RQT
 Lanzar dron con cámara;  
 make px4_sitl gz_x500_mono_cam
 
+
 Ejecutar el agente para que se conecte con el cliente del dron; 
 MicroXRCEAgent udp4 -p 8888
+
+
+---Relacionar las carpetas de intalación(ws->puentes ros2; ws_sensor->controladora dron)
+source ~/ws/install/setup.sh
+source ~/ws_sensor_combined/install/setup.sh
+
 
 Lanzar el brigde de ros2 con la cámara; 
 ros2 run ros_gz_image image_bridge /world/default/model/x500_mono_cam_0/link/camera_link/sensor/imager/image
 
-Abrir rqt y visualizar el topic de la cámara; 
+
+Abrir rqt y visualizar el topic de la cámara; (Para visualizar el gazebo suscribirse a image display)
 rqt
-(Para visualizar el gazebo suscribirse a image display)
+
+-------------------------------------------------
+
+
+---Para añadir todos los source necesarios al bash inicial que se cargar al abrir un nuevo terminal; 
+gedit ~/.bashrc
+//Introducir al final:
+source ~/ws/install/setup.sh
+source ~/ws_sensor_combined/install/setup.sh
 
 ---PARA LEER UN TOPIC
 ros2 topic echo /fmu/out/vehicle_odometry
@@ -50,10 +66,9 @@ ros2 topic echo /fmu/out/vehicle_odometry
 ros2 topic list
 ros2 pkg list
 
----Para añadir todos los source necesarios al bash inicial que se cargar al abrir un nuevo terminal; 
-gedit ~/.bashrc
-//Introducir al final:
-source ~/ws/install/setup.sh
-source ~/ws_sensor_combined/install/setup.sh
+---Para ver los topics relacionados con la cámara
+ros2 topic list | grep image
+
+
 
 
