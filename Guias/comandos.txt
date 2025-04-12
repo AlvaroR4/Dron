@@ -53,6 +53,12 @@ rqt
 -------------------------------------------------
 
 
+---Diagrama imagen ROS2
+
+[Gazebo Sim Sensor] ---> [Gazebo Transport Topic] ---> [ros_gz_image_bridge] ---> [ROS 2 Topic (ej: //world/default/...)] ---> [imagen_receiver.py]
+       (Virtual)              (Interno Gazebo)             (Traductor)                 (ROS 2)                                    (Script)
+
+
 ---Para añadir todos los source necesarios al bash inicial que se cargar al abrir un nuevo terminal; 
 gedit ~/.bashrc
 //Introducir al final:
@@ -65,6 +71,7 @@ ros2 topic echo /fmu/out/vehicle_odometry
 ---Comandos ros2:
 ros2 topic list
 ros2 pkg list
+ros2 topic info <topic>
 
 ---Para ver los topics relacionados con la cámara
 ros2 topic list | grep image
