@@ -9,7 +9,6 @@ import threading
 
 from mavsdk import System
 
-drone = System()
 
 SERVER_IP = "127.0.0.1"
 SERVER_PORT = 65432
