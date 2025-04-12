@@ -8,7 +8,6 @@
 Imagen/
 │── mover.py
 |── tratarImagen2.py
-
 ```
 ### 🏎️ tratarImagen2.py
 Este script recibe el topic ROS2 de una cámra y la procesa
