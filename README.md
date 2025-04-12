@@ -58,6 +58,7 @@ Este comando genera la cantidad de servidores de MAVSDK necesarios para la simul
 Este script recibe el topic ROS2 de una cámra y la procesa
 Busca objetos de color rojo y calcula el offset a su centroide
 Una vez calculado el centroide, envia offset_x y offset_y a través de un socket
+Utiliza hilos para enviar las coordenadas cada x segs
 
 ### 🚁 mover.py (En desarrollo)
 Este script recibe coordenadas x,y a través de un socket
