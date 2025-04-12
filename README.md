@@ -17,6 +17,9 @@ Dron/
 │   ├── variosDrones.py
 │── Crear/
 │   ├── crearServidores.sh
+│── Imagen/
+│   ├── tratarImagen2.py
+│   ├── mover.py
 ```
 ### 🏎️ 3rovers.py
 Este script controla varios rovers en una simulación con PX4 y MAVSDK.
