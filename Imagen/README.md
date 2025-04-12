@@ -43,9 +43,12 @@ Se puede elegir la propia cámara del pc, o una externa
 
 ## Ejemplos de simulación
 Comandos de ejecución en:
+
+```
 Dron/
 │── Guias/
 │   ├── comandos.txt
+```
 
 Lectura simple del topic de la cámara: 
 
