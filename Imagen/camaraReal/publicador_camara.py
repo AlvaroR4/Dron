@@ -12,7 +12,7 @@ class NodoCamaraReal(Node):
         super().__init__('nodo_camara_real')
 
         # --- Parámetros Configurables ---
-        # Índice de la cámara (0 suele ser la integrada, 1+ las USB)
+        # Índice de la cámara (0 suele ser la integrada, 1+ o 2+ las USB)
         self.declare_parameter('indice_camara', 0)
         indice_camara = self.get_parameter('indice_camara').get_parameter_value().integer_value
 
