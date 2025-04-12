@@ -67,7 +67,7 @@ Utiliza hilos para enviar las coordenadas cada x segs
 Este script recibe coordenadas x,y a través de un socket
 Trata de alinear el dron respecto al centroide de un objeto para pasar a través de él
 
-### 🏎️ publicador_camara3.py
+### 🏎️ publicador_camara.py
 Este script publica en un topic las imagenes de una cámara física
 Se puede elegir la propia cámara del pc, o una externa
 
