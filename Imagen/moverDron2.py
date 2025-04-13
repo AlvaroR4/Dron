@@ -203,7 +203,7 @@ if __name__ == "__main__":
 +-------------------------+
 | Realizar Checks         |
 | Armar, Iniciar Offboard |
-| (Despegar/Asegurar Alt) |
+| (Despegar)              |
 +-------------------------+
             |
             V
