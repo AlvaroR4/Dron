@@ -9,8 +9,8 @@ Imagen/
 ├── tratarImagen2.py
 ├── mover.py
 ├── camaraReal/
-├── publicador_camara.py
-├── tratarImagen3.py
+|   ├── publicador_camara.py
+|   ├── tratarImagen3.py
 ```
 ### 🏎️ tratarImagen2.py
 Este script recibe el topic ROS2 de una cámra y la procesa
