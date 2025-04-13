@@ -35,6 +35,7 @@ async def mover_proporcional(drone: System, x: float, y: float):
     vel_lateral = KP_X * x
     vel_vertical = KP_Y * y
 
+    #Para que nunca se supere la max velocidad lateral o vertical
     vel_lateral = np.clip(vel_lateral, -MAX_VEL_LATERAL, MAX_VEL_LATERAL)
     vel_vertical = np.clip(vel_vertical, -MAX_VEL_VERTICAL, MAX_VEL_VERTICAL)
 
@@ -183,3 +184,102 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("Script interrumpido por el usuario (Ctrl+C).")
     print("Script finalizado.")
+
+
+
+
+"""
++-------------------------+
+| Inicio del Script (run) |
++-------------------------+
+            |
+            V
++-------------------------+
+| Inicializar Conexión    |
+| MAVSDK (Drone)          |
++-------------------------+
+            |
+            V
++-------------------------+
+| Realizar Checks         |
+| Armar, Iniciar Offboard |
+| (Despegar/Asegurar Alt) |
++-------------------------+
+            |
+            V
++-------------------------+
+| Inicializar Socket UDP  |
++-------------------------+
+            |
+            V
++-----------------------------------+      <---------------------------------------+
+| Bucle `recibir_posiciones` activo |                                              |
++-----------------------------------+                                              |
+            |                                                                      |
+            V                                                                      |
++-------------------------+                                                        |
+| ¿Paquete UDP recibido?  | -- No --> [Esperar Paquete UDP (await recvfrom)] ------+
++-------------------------+             (Cede control a asyncio)                   |
+            | Sí                                                                   |
+            V                                                                      |
++-------------------------+                                                        |
+| Parsear Paquete (x, y)  |                                                        |
++-------------------------+                                                        |
+            |                                                                      |
+            V                                                                      |
++-------------------------------------+                                            |
+| Llamar `mover_proporcional(x, y)`   |                                            |
+| (await)                             |                                            |
++-------------------------------------+                                            |
+            |                                                                      |
+            V (Dentro de mover_p)                                                  |
++-------------------------------------+                                            |
+| Calcular vel_forward, vel_lateral,  |                                            |
+| vel_vertical (con KP, clip, if/else)|                                            |
++-------------------------------------+                                            |
+            |                                                                      |
+            V (Dentro de mover_p)                                                  |
++-------------------------------------+                                            |
+| Enviar Comando Velocidad            |                                            |
+| (await set_velocity_body)           |                                            |
++-------------------------------------+                                            |
+            |                                                                      |
+            V (Dentro de mover_p)                                                  |
++-------------------------------------+                                            |
+| (MAVSDK envía a PX4)                |                                            |
++-------------------------------------+                                            |
+            |                                                                      |
+            V (Dentro de mover_p)                                                  |
++-------------------------------------+                                            |
+| `set_velocity_body` completa        |                                            |
++-------------------------------------+                                            |
+            |                                                                      |
+            V                                                                      |
++-------------------------------------+                                            |
+| `mover_proporcional` completa       |                                            |
++-------------------------------------+                                            |
+            |                                                                      |
+            +----------------------------------------------------------------------+
+
+
+(Flujo de Interrupción, ej: Ctrl+C)
+
++-------------------------+
+| Interrupción Detectada  |
+| (ej. KeyboardInterrupt/ |
+| CancelledError)         |
++-------------------------+
+            |
+            V
++-------------------------+
+| Ejecutar Bloque `finally`|
+| (Detener Offboard, Land,|
+| Disarm, Cerrar Socket)  |
++-------------------------+
+            |
+            V
++-------------------------+
+| Fin del Script          |
++-------------------------+
+
+"""
