@@ -4,23 +4,20 @@ import numpy as np # Necesario para np.clip
 from mavsdk import System
 from mavsdk.offboard import (OffboardError, VelocityBodyYawspeed, PositionNedYaw)
 
-# --- Configuración UDP ---
 SERVER_IP = "127.0.0.1"
 SERVER_PORT = 65432
 
-# --- Constantes de Control Proporcional (¡¡REQUIEREN AJUSTE/TUNING!!) ---
-KP_X = 0.008  # Ganancia proporcional para el eje X (velocidad lateral / pixel de error) -> Ajustar
-KP_Y = 0.008  # Ganancia proporcional para el eje Y (velocidad vertical / pixel de error) -> Ajustar
+KP_X = 0.008  # Ganancia proporcional para el eje X
+KP_Y = 0.008  # Ganancia proporcional para el eje Y 
 
-MAX_VEL_LATERAL = 0.5  # Velocidad lateral máxima (m/s) -> Ajustar
-MAX_VEL_VERTICAL = 0.5   # Velocidad vertical máxima (m/s) -> Ajustar
+MAX_VEL_LATERAL = 0.5  # Velocidad lateral máxima (m/s)
+MAX_VEL_VERTICAL = 0.5   # Velocidad vertical máxima
 
 # Umbrales para considerar que está "suficientemente alineado" para avanzar
-UMBRAL_AVANCE_X = 50    # Pixels de error X máximos para empezar a avanzar -> Ajustar
-UMBRAL_AVANCE_Y = 50    # Pixels de error Y máximos para empezar a avanzar -> Ajustar
-VELOCIDAD_AVANCE = 0.4  # Velocidad constante hacia adelante CUANDO está alineado (m/s) -> Ajustar
+UMBRAL_AVANCE_X = 50    # Pixels de error X máximos para empezar a avanzar
+UMBRAL_AVANCE_Y = 50    # Pixels de error Y máximos para empezar a avanzar
+VELOCIDAD_AVANCE = 0.4  # Velocidad constante hacia adelante cuando está alineado
 
-# --- Función de Movimiento Proporcional ---
 async def mover_proporcional(drone: System, x: float, y: float):
     """
     Controla el dron usando control proporcional basado en offsets (x, y).
@@ -29,24 +26,18 @@ async def mover_proporcional(drone: System, x: float, y: float):
     Interpretación de Offsets (asumida por el código original):
      x: Offset horizontal desde el centro. x > 0 -> objetivo a la DERECHA -> mover DERECHA (vel_lateral +)
                                           x < 0 -> objetivo a la IZQUIERDA -> mover IZQUIERDA (vel_lateral -)
-     y: Offset vertical desde el centro.  y > 0 -> objetivo ABAJO -> mover ABAJO (vel_vertical +) -> vel_abajo MAVSDK +
-                                          y < 0 -> objetivo ARRIBA -> mover ARRIBA (vel_vertical -) -> vel_abajo MAVSDK -
+     y: Offset vertical desde el centro.  y > 0 -> objetivo ABAJO -> mover ABAJO (vel_vertical +)
+                                          y < 0 -> objetivo ARRIBA -> mover ARRIBA (vel_vertical -)
 
-    MAVSDK VelocityBodyYawspeed(Adelante+, Derecha+, Abajo+, YawVel+)
     """
     print(f"--- Control Proporcional --- Offsets Recibidos: X={x:.1f}, Y={y:.1f}")
 
-    # --- Calcular Velocidades de Corrección ---
-    # Velocidad lateral (Derecha+) - Si x>0 (target derecha), queremos vel_lateral positiva
-    raw_vel_lateral = KP_X * x
-    # Velocidad Vertical (Abajo+) - Si y>0 (target abajo), queremos vel_vertical positiva
-    raw_vel_vertical = KP_Y * y
+    vel_lateral = KP_X * x
+    vel_vertical = KP_Y * y
 
-    # --- Limitar/Clampear las velocidades máximas ---
-    vel_lateral = np.clip(raw_vel_lateral, -MAX_VEL_LATERAL, MAX_VEL_LATERAL)
-    vel_vertical = np.clip(raw_vel_vertical, -MAX_VEL_VERTICAL, MAX_VEL_VERTICAL)
+    vel_lateral = np.clip(vel_lateral, -MAX_VEL_LATERAL, MAX_VEL_LATERAL)
+    vel_vertical = np.clip(vel_vertical, -MAX_VEL_VERTICAL, MAX_VEL_VERTICAL)
 
-    # --- Decidir si avanzar ---
     # Solo avanzamos si ambos errores X e Y están por debajo de sus umbrales
     if abs(x) < UMBRAL_AVANCE_X and abs(y) < UMBRAL_AVANCE_Y:
         vel_forward = VELOCIDAD_AVANCE
@@ -55,7 +46,6 @@ async def mover_proporcional(drone: System, x: float, y: float):
         vel_forward = 0.0
         print(f"    Alineando (|x| o |y| fuera de umbral). No avanza.")
 
-    # --- Enviar Comando de Velocidad ---
     print(f"    Enviando Velocidad Cuerpo: Adelante={vel_forward:.2f}, Derecha={vel_lateral:.2f}, Abajo={vel_vertical:.2f}")
     try:
         await drone.offboard.set_velocity_body(
@@ -63,12 +53,10 @@ async def mover_proporcional(drone: System, x: float, y: float):
         )
     except OffboardError as error:
          print(f"Error al enviar comando de velocidad offboard: {error._result.result}")
-         # Considerar manejar el error (ej. intentar detener offboard, aterrizar)
 
 
-# --- Función para recibir posiciones desde el socket ---
+
 async def recibir_posiciones(drone, sock):
-    """ Bucle principal que escucha en el socket UDP y llama a mover_proporcional """
     loop = asyncio.get_event_loop()
     print("-- Iniciando bucle de recepción de posiciones UDP...")
     while True:
@@ -103,7 +91,6 @@ async def recibir_posiciones(drone, sock):
             await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
             await asyncio.sleep(1) # Pausa antes de reintentar o salir
 
-# --- Función Principal de Ejecución ---
 async def run():
     """ Función principal que inicializa el dron, el socket y lanza el bucle """
     drone = System()
@@ -127,7 +114,6 @@ async def run():
         print("Error: GPS del dron no listo.")
         return
 
-    # --- Crear socket UDP para recibir posiciones ---
     sock = None # Inicializar a None
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -157,21 +143,16 @@ async def run():
         return
 
     print("-- Despegando...")
-    # await drone.action.takeoff() # Considera despegar antes de offboard o manejar altura
-    # await asyncio.sleep(5) # Esperar a que alcance altura
-    # O si ya estás en el aire, puedes omitir takeoff y empezar directamente
-    # Alternativa: mantener altura con PositionNedYaw si es necesario antes de empezar
-    print("¡¡Asegúrate de que el dron ya está en el aire o maneja el despegue/altura!!")
-    await asyncio.sleep(2) # Pausa antes de empezar a recibir/mover
+    await drone.action.takeoff()
+    await asyncio.sleep(5)
 
 
-    # --- Lanzar el bucle de recepción/movimiento ---
+
     try:
         await recibir_posiciones(drone, sock)
     except asyncio.CancelledError:
          print("Bucle de recepción cancelado.")
     finally:
-        # --- Secuencia de finalización segura ---
         print("-- Finalizando movimientos y deteniendo offboard...")
         try:
              # Detener cualquier movimiento remanente
