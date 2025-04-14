@@ -6,8 +6,8 @@ from mavsdk.offboard import (OffboardError, VelocityBodyYawspeed, PositionNedYaw
 SERVER_IP = "127.0.0.1"
 SERVER_PORT = 65432
 
-VELOCIDAD_CORRECCION = 0.3  # Velocidad para corregir la alineación (m/s)
-VELOCIDAD_AVANCE_LENTO = 0.3 # Velocidad de avance una vez alineado
+VELOCIDAD_CORRECCION = 2 
+VELOCIDAD_AVANCE = 2 
 MARGEN_ERROR_X = 2
 MARGEN_ERROR_Y = 2
 
@@ -18,6 +18,22 @@ ESTADO_AVANZANDO = 3
 
 
 estado_actual = ESTADO_INICIAL
+
+VELOCIDAD_PRUEBA_AVANCE = 0.5 
+
+async def mover_prueba(drone: System, x: float, y: float):
+
+    vel_adelante = VELOCIDAD_PRUEBA_AVANCE
+    vel_lateral = 0.0  
+    vel_vertical = 0.0 
+    vel_yaw = 0.0
+
+    print(f"--- MODO PRUEBA --- Enviando Velocidad Adelante Constante: {vel_adelante:.2f} m/s")
+
+    await drone.offboard.set_velocity_body(VelocityBodyYawspeed(vel_adelante, vel_lateral, vel_vertical, vel_yaw))
+
+
+
 async def mover(drone, x, y):
     """
     Controla el dron de forma SECUENCIAL y SIMPLE:
@@ -53,16 +69,12 @@ async def mover(drone, x, y):
                 print(f"Moviendo DERECHA ({velocidad_lateral=})")
 
             # VelocityBodyYawspeed(Adelante, Derecha, Abajo, Giro)
-            await drone.offboard.set_velocity_body(
-                VelocityBodyYawspeed(0.0, velocidad_lateral, 0.0, 0.0)
-            )
+            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.2, velocidad_lateral, 0.0, 0.0))
             return
 
         else: #EJE X ALINEADO
             print(f"Eje X Alineado (|{x:.1f}| <= {MARGEN_ERROR_X}). Pasando a Eje Y.")
-            await drone.offboard.set_velocity_body(
-                VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0)
-            )
+            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
             await asyncio.sleep(1)
             estado_actual = ESTADO_ALINEANDO_Y
 
@@ -78,25 +90,19 @@ async def mover(drone, x, y):
                 velocidad_vertical = VELOCIDAD_CORRECCION
                 print(f"Moviendo ABAJO ({velocidad_vertical=})")
 
-            await drone.offboard.set_velocity_body(
-                VelocityBodyYawspeed(0.0, 0.0, velocidad_vertical, 0.0)
-            )
+            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.2, 0.0, velocidad_vertical, 0.0))
             return 
 
         else: #EJE X ALINEADO
             print(f"Eje Y Alineado (|{y:.1f}| <= {MARGEN_ERROR_Y}). Pasando a Avanzar.")
-            await drone.offboard.set_velocity_body(
-                VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0)
-            )
+            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
             await asyncio.sleep(1)
             estado_actual = ESTADO_AVANZANDO
 
     # Paso 3: Avanzar (Ambos ejes alineados)
     if estado_actual == ESTADO_AVANZANDO:
-        print(f"--- Estado: Avanzando --- Velocidad: {VELOCIDAD_AVANCE_LENTO}")
-        await drone.offboard.set_velocity_body(
-            VelocityBodyYawspeed(VELOCIDAD_AVANCE_LENTO, 0.0, 0.0, 0.0)
-        )
+        print(f"--- Estado: Avanzando --- Velocidad: {VELOCIDAD_AVANCE}")
+        await drone.offboard.set_velocity_body(VelocityBodyYawspeed(VELOCIDAD_AVANCE, 0.0, 0.0, 0.0))
         # EL DRON AVANZA HACIA ADELANTE. FUNCIÓN PARA PARAR NO IMPLEMENTADA
 
 # Función para recibir posiciones desde el socket
@@ -111,7 +117,7 @@ async def recibir_posiciones(drone, sock):
             x_str, y_str = mensaje.split(",")
             x, y = float(x_str), float(y_str)
 
-            await mover(drone, x, y)
+            await mover_prueba(drone, x, y)
 
         except BlockingIOError:
             await asyncio.sleep(0.1)
@@ -134,7 +140,6 @@ async def run():
             print("-- Posición global OK")
             break
 
-    # Crear socket para recibir posiciones
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setblocking(False)
     sock.bind((SERVER_IP, SERVER_PORT))
@@ -158,9 +163,14 @@ async def run():
 
     print("-- Despegandooo")
     await drone.action.takeoff()
+    await asyncio.sleep(10)
 
     print("-- Iniciando recepción de posiciones")
-    await recibir_posiciones(drone, sock)
+    #await recibir_posiciones(drone, sock)
+    while 1: 
+        await mover_prueba(drone, 0.0, 0.0)
+        await asyncio.sleep(0.1)
+    
 
     print("-- Finalizando movimientos")
     await drone.offboard.set_velocity_body(

@@ -19,7 +19,7 @@ class ImageSubscriber(Node):
         super().__init__('image_subscriber')
         self.subscription = self.create_subscription(
             Image,
-            '/world/default/model/x500_mono_cam_0/link/camera_link/sensor/imager/image',
+            '/world/puertas_rojas/model/x500_mono_cam_0/link/camera_link/sensor/imager/image',
             self.listener_callback,
             10)
         self.br = CvBridge()
