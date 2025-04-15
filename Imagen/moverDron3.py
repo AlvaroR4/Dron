@@ -6,10 +6,13 @@ from mavsdk.offboard import (OffboardError, VelocityBodyYawspeed, PositionNedYaw
 SERVER_IP = "127.0.0.1"
 SERVER_PORT = 65432
 
-VELOCIDAD_CORRECCION = 0.5
+VELOCIDAD_CORRECCION_X = 0.5
+VELOCIDAD_CORRECCION_Y = 0.5
 VELOCIDAD_AVANCE = 1.5
 MARGEN_ERROR_X = 3
 MARGEN_ERROR_Y = 3
+MARGEN_ERROR_X_ALINEADO = 10
+MARGEN_ERROR_Y_ALINEADO = 10
 
 ESTADO_INICIAL = 0
 ESTADO_ALINEANDO_X = 1
@@ -21,15 +24,16 @@ estado_actual = ESTADO_INICIAL
 async def mover(drone, x, y):
     global estado_actual
 
+
     if estado_actual == ESTADO_INICIAL or estado_actual == ESTADO_ALINEANDO_X:
         print(f"--- Estado: Alineando X --- Recibido Offset X: {x:.1f}")
         if abs(x) > MARGEN_ERROR_X:
             estado_actual = ESTADO_ALINEANDO_X
             if x < 0:
-                velocidad_lateral = -VELOCIDAD_CORRECCION
+                velocidad_lateral = -VELOCIDAD_CORRECCION_X
                 print(f"Moviendo IZQUIERDA ({velocidad_lateral=})")
             else:
-                velocidad_lateral = VELOCIDAD_CORRECCION
+                velocidad_lateral = VELOCIDAD_CORRECCION_X
                 print(f"Moviendo DERECHA ({velocidad_lateral=})")
             await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, velocidad_lateral, 0.0, 0.0))
             return
@@ -44,10 +48,10 @@ async def mover(drone, x, y):
         if abs(y) > MARGEN_ERROR_Y:
             estado_actual = ESTADO_ALINEANDO_Y
             if y < 0:
-                velocidad_vertical = -VELOCIDAD_CORRECCION
+                velocidad_vertical = -VELOCIDAD_CORRECCION_Y
                 print(f"Moviendo ARRIBA ({velocidad_vertical=})")
             else:
-                velocidad_vertical = VELOCIDAD_CORRECCION
+                velocidad_vertical = VELOCIDAD_CORRECCION_Y
                 print(f"Moviendo ABAJO ({velocidad_vertical=})")
             await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, velocidad_vertical, 0.0))
             return
@@ -58,33 +62,27 @@ async def mover(drone, x, y):
             estado_actual = ESTADO_AVANZANDO
 
     if estado_actual == ESTADO_AVANZANDO:
+        velocidad_lateral = 0.0
+        velocidad_vertical = 0.0
         print(f"--- Estado: Avanzando --- Velocidad: {VELOCIDAD_AVANCE}")
-        v_x = 0.0
-        v_y = 0.0
 
-        if abs(x) > MARGEN_ERROR_X:
+        if abs(x) > MARGEN_ERROR_X_ALINEADO:
             if x < 0:
-                velocidad_lateral = -VELOCIDAD_CORRECCION
-                v_x = VELOCIDAD_CORRECCION
+                velocidad_lateral = -VELOCIDAD_CORRECCION_X
                 print(f"Moviendo IZQUIERDA ({velocidad_lateral=})")
             else:
-                velocidad_lateral = VELOCIDAD_CORRECCION
-                v_x = VELOCIDAD_CORRECCION
+                velocidad_lateral = VELOCIDAD_CORRECCION_X
                 print(f"Moviendo DERECHA ({velocidad_lateral=})")
-            return
         
-        if abs(y) > MARGEN_ERROR_Y:
+        if abs(y) > MARGEN_ERROR_Y_ALINEADO:
             if y < 0:
-                velocidad_vertical = -VELOCIDAD_CORRECCION
-                v_y = VELOCIDAD_CORRECCION
+                velocidad_vertical = -VELOCIDAD_CORRECCION_Y
                 print(f"Moviendo ARRIBA ({velocidad_vertical=})")
             else:
-                velocidad_vertical = VELOCIDAD_CORRECCION
-                v_y = VELOCIDAD_CORRECCION
+                velocidad_vertical = VELOCIDAD_CORRECCION_Y
                 print(f"Moviendo ABAJO ({velocidad_vertical=})")
-            return
         
-        await drone.offboard.set_velocity_body(VelocityBodyYawspeed(VELOCIDAD_AVANCE, v_x, v_y, 0.0))
+        await drone.offboard.set_velocity_body(VelocityBodyYawspeed(VELOCIDAD_AVANCE, velocidad_lateral, velocidad_vertical, 0.0))
 
 
 
