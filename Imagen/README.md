@@ -8,12 +8,17 @@
 Imagen/
 ├── tratarImagen2.py
 ├── tratarImagen5.py
-├── mover.py
+├── tratarImagen6.py
 ├── mover2.py
+├── mover3.py
 ├── camaraReal/
 |   ├── publicador_camara.py
 |   ├── tratarImagen3.py
 |   ├── tratarImagen4.py
+├── versionesAntiguas/
+|   ├── mover.py
+|   ├── tratarImagen2.py
+|   ├── tratarImagen5.py
 ```
 ### 🏎️ tratarImagen2.py
 Este script recibe el topic ROS2 de una cámara y la procesa
@@ -37,7 +42,12 @@ Este script recibe el topic ROS2 de una cámara y la procesa
 Busca objetos de color rojo y calcula el offset a su centroide
 Una vez calculado el centroide, envia offset_x y offset_y a través de un socket
 
-### 🚁 mover.py (En desarrollo)
+### 🏎️ tratarImagen5.py
+Este script recibe el topic ROS2 de una cámara y la procesa
+Busca objetos de color rojo y calcula el offset a su centroide y el área del objeto
+Una vez calculado el centroide, envia offset_x , offset_y y área a través de un socket
+
+### 🚁 mover.py
 Este script recibe coordenadas x,y a través de un socket
 Trata de alinear el dron respecto al centroide de un objeto para pasar a través de él
 Usa estados para alinear primero un eje
@@ -46,6 +56,12 @@ Usa estados para alinear primero un eje
 Este script recibe coordenadas x,y a través de un socket
 Trata de alinear el dron respecto al centroide de un objeto para pasar a través de él
 Trata de alinear los dos ejes a la vez
+
+### 🚁 mover3.py (En desarrollo)
+Este script recibe coordenadas x,y y el área a través de un socket
+Trata de alinear el dron respecto al centroide de un objeto para pasar a través de él
+Usa estados para alinear primero un eje
+Sigue alineandose cuando avanza hacia la puerta
 
 ### 🏎️ publicador_camara.py
 Este script publica en un topic las imagenes de una cámara física

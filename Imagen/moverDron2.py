@@ -22,13 +22,15 @@ async def mover_proporcional(drone: System, x: float, y: float):
     Controla el dron usando control proporcional basado en offsets (x, y).
     Intenta alinear X e Y simultáneamente. Avanza si el error es pequeño.
 
-    Interpretación de Offsets (asumida por el código original):
-     x: Offset horizontal desde el centro. x > 0 -> objetivo a la DERECHA -> mover DERECHA (vel_lateral +)
-                                          x < 0 -> objetivo a la IZQUIERDA -> mover IZQUIERDA (vel_lateral -)
-     y: Offset vertical desde el centro.  y > 0 -> objetivo ABAJO -> mover ABAJO (vel_vertical +)
-                                          y < 0 -> objetivo ARRIBA -> mover ARRIBA (vel_vertical -)
+    Interpretación para movimiento del Dron:
+    x positivo -> Mover dron a la DERECHA (vel_derecha POS)
+    x negativo -> Mover dron a la IZQUIERDA  (vel_derecha NEG)
+    y positivo -> Mover dron ABAJO        (vel_abajo POS)
+    y negativo -> Mover dron ARRIBA         (vel_abajo NEG)
 
     """
+
+
     print(f"--- Control Proporcional --- Offsets Recibidos: X={x:.1f}, Y={y:.1f}")
 
     vel_lateral = KP_X * x
@@ -45,7 +47,12 @@ async def mover_proporcional(drone: System, x: float, y: float):
         print(f"    Alineando (|x| o |y| fuera de umbral). No avanza.")
 
     print(f"    Enviando Velocidad Cuerpo: Adelante={vel_forward:.2f}, Derecha={vel_lateral:.2f}, Abajo={vel_vertical:.2f}")
-    await drone.offboard.set_velocity_body(VelocityBodyYawspeed(vel_forward, vel_lateral, vel_vertical, 0.0))
+    try:
+        await drone.offboard.set_velocity_body(
+            VelocityBodyYawspeed(vel_forward, vel_lateral, vel_vertical, 0.0)
+        )
+    except OffboardError as error:
+         print(f"Error al enviar comando de velocidad offboard: {error._result.result}")
 
 
 
@@ -64,6 +71,7 @@ async def recibir_posiciones(drone, sock):
 
 
 async def run():
+
     drone = System()
     await drone.connect(system_address="udp://:14540")
 
@@ -72,36 +80,24 @@ async def run():
         if state.is_connected:
             print("-- Conectado al dron!")
             break
-    else: 
-        print("Error: No se pudo conectar al dron.")
-        return
 
     print("Esperando posición global del dron...")
     async for health in drone.telemetry.health():
         if health.is_global_position_ok and health.is_home_position_ok:
             print("-- Posición global OK")
             break
-    else:
-        print("Error: GPS del dron no listo.")
-        return
 
-    sock = None 
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.setblocking(False) 
-        sock.bind((SERVER_IP, SERVER_PORT))
-        print(f"-- Socket UDP escuchando en {SERVER_IP}:{SERVER_PORT}")
-    except Exception as sock_err:
-        print(f"Error al crear o bindear el socket UDP: {sock_err}")
-        return 
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setblocking(False)
+    sock.bind((SERVER_IP, SERVER_PORT))
+    loop = asyncio.get_running_loop()
 
     print("-- Armando dron")
     await drone.action.arm()
-    await asyncio.sleep(1)
 
-    print("-- Configurando setpoint inicial (velocidad 0)")
-    await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
-    await asyncio.sleep(0.1)
+    print("-- Configurando setpoint inicial")
+    await drone.offboard.set_velocity_body(
+        VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
 
     print("-- Iniciando modo offboard")
     try:
@@ -110,12 +106,12 @@ async def run():
         print(f"Error al iniciar modo offboard: {error._result.result}")
         print("-- Desarmando dron")
         await drone.action.disarm()
-        if sock: sock.close() 
         return
 
-    print("-- Despegando...")
-    await drone.action.takeoff()
-    await asyncio.sleep(10)
+    print("-- Subo")
+    await drone.offboard.set_velocity_body(
+        VelocityBodyYawspeed(0.0, 0.0, -2.0, 0.0))
+    await asyncio.sleep(6)
 
 
 

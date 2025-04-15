@@ -6,10 +6,10 @@ from mavsdk.offboard import (OffboardError, VelocityBodyYawspeed, PositionNedYaw
 SERVER_IP = "127.0.0.1"
 SERVER_PORT = 65432
 
-VELOCIDAD_CORRECCION = 2 
+VELOCIDAD_CORRECCION = 0.5 
 VELOCIDAD_AVANCE = 2 
-MARGEN_ERROR_X = 2
-MARGEN_ERROR_Y = 2
+MARGEN_ERROR_X = 5
+MARGEN_ERROR_Y = 5
 
 ESTADO_INICIAL = 0
 ESTADO_ALINEANDO_X = 1
@@ -42,17 +42,11 @@ async def mover(drone, x, y):
     3. Avanza lentamente hacia adelante.
     Se usa una variable global simple para controlar los pasos de alineación.
 
-    Offsets:
-    +,+ -> Arriba izquierda (Mover arriba, izquierda)
-    -,+ -> Arriba derecha   (Mover arriba, derecha)
-    -,- -> Abajo derecha    (Mover abajo, derecha)
-    +,- -> Abajo izquierda   (Mover abajo, izquierda)
-
     Interpretación para movimiento del Dron:
-    x positivo -> Mover dron a la IZQUIERDA (vel_derecha negativa)
-    x negativo -> Mover dron a la DERECHA  (vel_derecha positiva)
-    y positivo -> Mover dron ARRIBA        (vel_abajo negativa)
-    y negativo -> Mover dron ABAJO         (vel_abajo positiva)
+    x positivo -> Mover dron a la DERECHA (vel_derecha POS)
+    x negativo -> Mover dron a la IZQUIERDA  (vel_derecha NEG)
+    y positivo -> Mover dron ABAJO        (vel_abajo POS)
+    y negativo -> Mover dron ARRIBA         (vel_abajo NEG)
     """
     global estado_actual
 
@@ -61,7 +55,7 @@ async def mover(drone, x, y):
         print(f"--- Estado: Alineando X --- Recibido Offset X: {x:.1f}")
         if abs(x) > MARGEN_ERROR_X:
             estado_actual = ESTADO_ALINEANDO_X
-            if x > 0:
+            if x < 0:
                 velocidad_lateral = -VELOCIDAD_CORRECCION
                 print(f"Moviendo IZQUIERDA ({velocidad_lateral=})")
             else:
@@ -69,7 +63,7 @@ async def mover(drone, x, y):
                 print(f"Moviendo DERECHA ({velocidad_lateral=})")
 
             # VelocityBodyYawspeed(Adelante, Derecha, Abajo, Giro)
-            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.2, velocidad_lateral, 0.0, 0.0))
+            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, velocidad_lateral, 0.0, 0.0))
             return
 
         else: #EJE X ALINEADO
@@ -83,14 +77,14 @@ async def mover(drone, x, y):
     if estado_actual == ESTADO_ALINEANDO_Y:
         print(f"--- Estado: Alineando Y --- Recibido Offset Y: {y:.1f}")
         if abs(y) > MARGEN_ERROR_Y:
-            if y > 0:
+            if y < 0:
                 velocidad_vertical = -VELOCIDAD_CORRECCION 
                 print(f"Moviendo ARRIBA ({velocidad_vertical=})")
             else:
                 velocidad_vertical = VELOCIDAD_CORRECCION
                 print(f"Moviendo ABAJO ({velocidad_vertical=})")
 
-            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.2, 0.0, velocidad_vertical, 0.0))
+            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, velocidad_vertical, 0.0))
             return 
 
         else: #EJE X ALINEADO
@@ -117,7 +111,7 @@ async def recibir_posiciones(drone, sock):
             x_str, y_str = mensaje.split(",")
             x, y = float(x_str), float(y_str)
 
-            await mover_prueba(drone, x, y)
+            await mover(drone, x, y)
 
         except BlockingIOError:
             await asyncio.sleep(0.1)
@@ -161,16 +155,14 @@ async def run():
         await drone.action.disarm()
         return
 
-    print("-- Despegandooo")
-    await drone.action.takeoff()
-    await asyncio.sleep(10)
+    print("-- Subo")
+    await drone.offboard.set_velocity_body(
+        VelocityBodyYawspeed(0.0, 0.0, -2.0, 0.0))
+    await asyncio.sleep(6)
 
     print("-- Iniciando recepción de posiciones")
-    #await recibir_posiciones(drone, sock)
-    while 1: 
-        await mover_prueba(drone, 0.0, 0.0)
-        await asyncio.sleep(0.1)
-    
+    await recibir_posiciones(drone, sock)
+
 
     print("-- Finalizando movimientos")
     await drone.offboard.set_velocity_body(
