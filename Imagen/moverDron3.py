@@ -175,17 +175,6 @@ async def run():
             VelocityBodyYawspeed(0.0, 0.0, -2.0, 0.0))
         await asyncio.sleep(6)
 
-        print("-- Iniciando modo offboard")
-        try:
-            await drone.offboard.start()
-        except OffboardError as error:
-            print(f"Error al iniciar modo offboard: {error._result.result}")
-            print("-- Desarmando dron")
-            await drone.action.disarm()
-            if sock: sock.close()
-            return
-
-
         print("-- Iniciando recepción...")
         await recibir_posiciones(drone, sock)
 

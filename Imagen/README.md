@@ -15,10 +15,13 @@ Imagen/
 |   ├── publicador_camara.py
 |   ├── tratarImagen3.py
 |   ├── tratarImagen4.py
+├── pruebasDistancia/
+|
 ├── versionesAntiguas/
 |   ├── mover.py
 |   ├── tratarImagen2.py
 |   ├── tratarImagen5.py
+
 ```
 ### 🏎️ tratarImagen2.py
 Este script recibe el topic ROS2 de una cámara y la procesa
@@ -67,8 +70,8 @@ Sigue alineandose cuando avanza hacia la puerta
 Este script publica en un topic las imagenes de una cámara física
 Se puede elegir la propia cámara del pc, o una externa
 
-
-
+### /pruebasDistancia
+Carpeta con scrpts para realizar pruebas del cálculo de distancias con cámaras.
 
 
 ## Ejemplos de simulación
