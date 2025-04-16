@@ -7,7 +7,7 @@ import numpy as np
 
 TAMANO_REAL_PUERTA_M = 1.5 # Ejemplo: Ancho REAL de la puerta_grande_1 del puertas_rojas.sdf
 """
-Calcular desde FOV: No tenemos <fx> o <fy> directamente. Usamos la fórmula con el FOV horizontal (HFOV) y el ancho (width) para obtener fx. Asumiremos fy ≈ fx (generalmente válido si los píxeles son cuadrados).
+Calcular desde FOV: No tenemos <fx> o <fy> directamente. Usamos la fórmula con el FOV horizontal (HFOV) y el ancho (width) para obtener fx. Asumiremos fy = fx.
 
     fx = (width / 2) / tan(HFOV / 2)
     width = 1280 píxeles
@@ -16,7 +16,7 @@ Calcular desde FOV: No tenemos <fx> o <fy> directamente. Usamos la fórmula con 
     tan(0.87) ≈ 1.1866
     fx ≈ 640 / 1.1866 ≈ 539.35 píxeles.
 
-Valor: Usaremos fy ≈ fx. DISTANCIA_FOCAL_PIXELS = 539.35 (aproximadamente).
+Valor: Usaremos fy = fx. DISTANCIA_FOCAL_PIXELS = 539.35 (aproximadamente).
 """
 DISTANCIA_FOCAL_PIXELS = 539.35 
 
