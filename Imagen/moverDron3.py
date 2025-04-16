@@ -14,59 +14,67 @@ MARGEN_ERROR_Y = 3
 MARGEN_ERROR_X_ALINEADO = 10
 MARGEN_ERROR_Y_ALINEADO = 10
 
+#Como corregimos en ambos ejes a la vez, no usamos estados para corregir cada eje independientemente
 ESTADO_INICIAL = 0
-ESTADO_ALINEANDO_X = 1
-ESTADO_ALINEANDO_Y = 2
-ESTADO_AVANZANDO = 3
+ESTADO_AVANZANDO = 1
 
 estado_actual = ESTADO_INICIAL
 
 async def mover(drone, x, y):
+    """
+    Primero tratamos de alinear ejes X e Y a la vez (2D)
+    Una vez alineados, avanzamos en eje X (3D), siempre tratando de corregir posibles errores en X o Y (2D)
+
+    Interpretación para movimiento del Dron:
+    x positivo -> Mover dron a la DERECHA (vel_derecha POS)
+    x negativo -> Mover dron a la IZQUIERDA  (vel_derecha NEG)
+    y positivo -> Mover dron ABAJO        (vel_abajo POS)
+    y negativo -> Mover dron ARRIBA         (vel_abajo NEG)
+
+    """
     global estado_actual
+    velocidad_lateral = 0.0
+    velocidad_vertical = 0.0
 
-
-    if estado_actual == ESTADO_INICIAL or estado_actual == ESTADO_ALINEANDO_X:
-        print(f"--- Estado: Alineando X --- Recibido Offset X: {x:.1f}")
+    if estado_actual == ESTADO_INICIAL: #Corregimos en ejes X e Y (2D)
+        #Comprobamos si necesita corrección en eje X;
         if abs(x) > MARGEN_ERROR_X:
-            estado_actual = ESTADO_ALINEANDO_X
+            print(f"--- Estado: Alineando X --- Recibido Offset X: {x:.1f}")
             if x < 0:
                 velocidad_lateral = -VELOCIDAD_CORRECCION_X
                 print(f"Moviendo IZQUIERDA ({velocidad_lateral=})")
             else:
                 velocidad_lateral = VELOCIDAD_CORRECCION_X
                 print(f"Moviendo DERECHA ({velocidad_lateral=})")
-            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, velocidad_lateral, 0.0, 0.0))
-            return
-        else:
-            print(f"Eje X Alineado (|{x:.1f}| <= {MARGEN_ERROR_X}). Pasando a Eje Y.")
-            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
-            await asyncio.sleep(0.5)
-            estado_actual = ESTADO_ALINEANDO_Y
+            #Asignamos VELOCIDAD_CORRECION_X a velocidad_lateral con su correspondiente signo
 
-    if estado_actual == ESTADO_ALINEANDO_Y:
-        print(f"--- Estado: Alineando Y --- Recibido Offset Y: {y:.1f}")
+        #Comprbamos si necesita corrección en eje Y;
         if abs(y) > MARGEN_ERROR_Y:
-            estado_actual = ESTADO_ALINEANDO_Y
+            print(f"--- Estado: Alineando Y --- Recibido Offset Y: {y:.1f}")
             if y < 0:
                 velocidad_vertical = -VELOCIDAD_CORRECCION_Y
                 print(f"Moviendo ARRIBA ({velocidad_vertical=})")
             else:
                 velocidad_vertical = VELOCIDAD_CORRECCION_Y
                 print(f"Moviendo ABAJO ({velocidad_vertical=})")
-            await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, velocidad_vertical, 0.0))
-            return
-        else:
-            print(f"Eje Y Alineado (|{y:.1f}| <= {MARGEN_ERROR_Y}). Pasando a Avanzar.")
+            #Asignamos VELOCIDAD_CORRECION_Y a velocidad_vertical con su correspondiente signo
+
+        #Si ambos ejes están alineados, comenazmos a avanzar
+        if abs(x) <= MARGEN_ERROR_X and abs(y) <= MARGEN_ERROR_Y:
+            print(f"--- Estado: X e Y ALINEADOS. ---Avanzamos")
             await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
-            await asyncio.sleep(0.5)
             estado_actual = ESTADO_AVANZANDO
+            return #Para que no aplique la velocidad de 2 líneas después \/
+        
+        #APLICAR LA VELOCIDAD CORRESPONDIENTE
+        await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, velocidad_lateral, velocidad_vertical, 0.0))
 
     if estado_actual == ESTADO_AVANZANDO:
-        velocidad_lateral = 0.0
-        velocidad_vertical = 0.0
+        #Avanzaremos en eje X (3D), mientras correfgimos errores en ejes X o Y (2D)
+
         print(f"--- Estado: Avanzando --- Velocidad: {VELOCIDAD_AVANCE}")
 
-        if abs(x) > MARGEN_ERROR_X_ALINEADO:
+        if abs(x) > MARGEN_ERROR_X_ALINEADO: #Si se geenra error en X corregir
             if x < 0:
                 velocidad_lateral = -VELOCIDAD_CORRECCION_X
                 print(f"Moviendo IZQUIERDA ({velocidad_lateral=})")
@@ -74,14 +82,17 @@ async def mover(drone, x, y):
                 velocidad_lateral = VELOCIDAD_CORRECCION_X
                 print(f"Moviendo DERECHA ({velocidad_lateral=})")
         
-        if abs(y) > MARGEN_ERROR_Y_ALINEADO:
+        if abs(y) > MARGEN_ERROR_Y_ALINEADO:# O si se genera error en Y corregfirlo
             if y < 0:
                 velocidad_vertical = -VELOCIDAD_CORRECCION_Y
                 print(f"Moviendo ARRIBA ({velocidad_vertical=})")
             else:
                 velocidad_vertical = VELOCIDAD_CORRECCION_Y
                 print(f"Moviendo ABAJO ({velocidad_vertical=})")
-        
+
+        #APLICAR LA VELOCIDAD CORRESPONMDIENTE
+        #Si no se han generado errores en los ejes X o Y (2D), el dron solo se moverá hacia adelante
+        # poirque por defecto velocidad_lateral y _vertical son = 0.0
         await drone.offboard.set_velocity_body(VelocityBodyYawspeed(VELOCIDAD_AVANCE, velocidad_lateral, velocidad_vertical, 0.0))
 
 
