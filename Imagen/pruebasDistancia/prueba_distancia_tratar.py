@@ -6,6 +6,27 @@ import cv2
 import numpy as np
 
 TAMANO_REAL_PUERTA_M = 1.5 # Ejemplo: Ancho REAL de la puerta_grande_1 del puertas_rojas.sdf
+
+"""
+EJEMPLO CÁLCULO DISTANCIA FOCAL: 
+Somewhere within the gazebo robot configuration you will find the camera parameters like the following: Changing the hfov will change you the field of view :-)
+
+<sensor:camera name="cam_front_sensor">
+  <imageSize>640 480</imageSize>
+  <imageFormat>B8G8R8</imageFormat>
+  <hfov>90</hfov>
+  <nearClip>0.1</nearClip>
+  <farClip>100</farClip>
+  <updateRate>20.0</updateRate>
+  .....
+</sensor:camera>
+You can compute the focal length with
+
+f = (width/2) / tan( deg2rad(hfov)/2) = (640/2) / tan(deg2rad(90)/2) = 320
+
+The example above will give you a focal length of 320. Don't forget to convert the angle to radiant
+
+"""
 """
 Calcular desde FOV: No tenemos <fx> o <fy> directamente. Usamos la fórmula con el FOV horizontal (HFOV) y el ancho (width) para obtener fx. Asumiremos fy = fx.
 
