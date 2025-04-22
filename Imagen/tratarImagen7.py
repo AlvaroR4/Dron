@@ -13,14 +13,14 @@ TAMANO_REAL_PUERTA_M = 1.5
 DISTANCIA_FOCAL_PIXELS = 539.35
 MIN_CONTOUR_AREA = 150
 COLOR_LOWER = np.array([0, 0, 0])
-COLOR_UPPER = np.array([255, 0, 0])
+COLOR_UPPER = np.array([0, 0, 255])
 
 class ImageProcessorSimple(Node):
     def __init__(self):
         super().__init__('image_processor_simple')
         self.subscription = self.create_subscription(
             Image,
-            '/world/puertas_rojas/model/x500_mono_cam_0/link/camera_link/sensor/imager/image',
+            '/world/puertas2/model/x500_mono_cam_0/link/camera_link/sensor/imager/image',
             self.listener_callback,
             10)
         self.br = CvBridge()
@@ -64,7 +64,7 @@ class ImageProcessorSimple(Node):
                     offset_y = cY - center_y
                     detected_targets.append({
                         'offset_x': offset_x, 'offset_y': offset_y,
-                        'distance': distancia_estimada, 'centroid': (cX, cY),
+                        'distance': distancia_estimada, 'centroide': (cX, cY),
                         'rect': rect
                     })
 
@@ -93,8 +93,9 @@ class ImageProcessorSimple(Node):
             if target == closest_target: color = (255, 0, 0)
             box_points = cv2.boxPoints(target['rect'])
             cv2.drawContours(img_display, [np.intp(box_points)], 0, color, 2)
+            cv2.circle(img_display, target['centroide'], 5, color, -1)
             info_text = f"D:{target['distance']:.1f}"
-            cv2.putText(img_display, info_text, (target['centroid'][0], target['centroid'][1] - 15),
+            cv2.putText(img_display, info_text, (target['centroide'][0], target['centroide'][1] - 15),
                        cv2.FONT_HERSHEY_SIMPLEX, 0.4, color, 1)
 
         cv2.imshow("Deteccion Simple", img_display)

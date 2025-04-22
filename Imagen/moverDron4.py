@@ -1,18 +1,23 @@
 import asyncio
 import socket
 from mavsdk import System
-from mavsdk.offboard import OffboardError, VelocityBodyYawspeed
+from mavsdk.offboard import (OffboardError, VelocityBodyYawspeed, PositionNedYaw)
 
-SERVER_IP = "127.0.0.1"
-SERVER_PORT = 65432
-VELOCIDAD_CORRECCION_X = 0.4
-VELOCIDAD_CORRECCION_Y = 0.4
-VELOCIDAD_AVANCE = 1.0
-MARGEN_ERROR_X = 15
-MARGEN_ERROR_Y = 15
-MARGEN_ERROR_X_ALINEADO = 25
-MARGEN_ERROR_Y_ALINEADO = 25
-CONTADOR_PERDIDO_MAX = 10 
+SERVER_IP = "127.0.0.1"         # Dirección IP donde este script escucha
+SERVER_PORT = 65432           # Puerto UDP donde este script escucha los datos de la imagen
+
+VELOCIDAD_CORRECCION_X = 0.4  # Velocidad (m/s) para corregir errores laterales (eje Y del dron, izq/der)
+VELOCIDAD_CORRECCION_Y = 0.4  # Velocidad (m/s) para corregir errores verticales (eje Z del dron, arriba/abajo)
+VELOCIDAD_AVANCE = 1.0        # Velocidad (m/s) constante hacia adelante al atravesar (eje X del dron)
+
+MARGEN_ERROR_X = 5           # Error máx. en píxeles (offset X) para considerar alineado antes de avanzar
+MARGEN_ERROR_Y = 5           # Error máx. en píxeles (offset Y) para considerar alineado antes de avanzar
+MARGEN_ERROR_X_ALINEADO = 5  # Margen de error X más amplio permitido mientras se avanza
+MARGEN_ERROR_Y_ALINEADO = 5  # Margen de error Y más amplio permitido mientras se avanza
+
+CONTADOR_PERDIDO_MAX = 10     # Num de ciclos seguidos sin detectar objetivo para confirmar pérdida/paso
+DISTANCIA_UMBRAL_CERCA = 1.7  # Distancia (m) umbral para considerar que estamos "cerca" de la puerta (Dará comienzo a fase_avance) 
+UMBRAL_AUMENTO_DIST = 0.75    # Aumento de distancia (m) necesario tras estar "cerca" para confirmar paso
 
 
 ESTADO_INICIO = 0
@@ -33,35 +38,46 @@ estado_nombres = {
 
 estado_actual = ESTADO_INICIO
 objetivo_perdido_contador = 0
+min_distancia_vista = float('inf')
+fase_avance = 'INICIAL'
+
 
 async def cambiar_estado(nuevo_estado, drone):
-    """Cambia estado, loggea y detiene dron si es necesario."""
-    global estado_actual, objetivo_perdido_contador
+    """Cambia estado, loggea, resetea variables y detiene dron si es necesario."""
+    global estado_actual, objetivo_perdido_contador, min_distancia_vista, fase_avance
     if estado_actual != nuevo_estado:
         print(f"Estado: {estado_nombres[estado_actual]} -> {estado_nombres[nuevo_estado]}")
         estado_actual = nuevo_estado
         objetivo_perdido_contador = 0
+
+        if nuevo_estado in [ESTADO_ALINEANDO_PUERTA_1, ESTADO_ALINEANDO_PUERTA_2]:
+            min_distancia_vista = float('inf')
+            fase_avance = 'INICIAL'
+
         if nuevo_estado in [ESTADO_BUSCANDO_PUERTA_2, ESTADO_MISION_COMPLETA]:
              await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
-             await asyncio.sleep(0.2) 
+             await asyncio.sleep(0.2)
+
 
 async def mover(drone, offset_x, offset_y, distancia, num_targets):
-    """Controla movimiento y estados basado en datos recibidos."""
-    global estado_actual, objetivo_perdido_contador
+    """Controla movimiento y estados basado en datos recibidos y tendencia de distancia."""
+    global estado_actual, objetivo_perdido_contador, min_distancia_vista, fase_avance
 
     velocidad_avance, velocidad_lateral, velocidad_vertical = 0.0, 0.0, 0.0
-    target_detected = num_targets > 0 and distancia > 0
+    target_detected = num_targets > 0 and distancia > 0 # Condición para buscar inicialmente
 
     if estado_actual == ESTADO_BUSCANDO_PUERTA_1:
-        if target_detected: await cambiar_estado(ESTADO_ALINEANDO_PUERTA_1, drone)
+        if target_detected:
+            await cambiar_estado(ESTADO_ALINEANDO_PUERTA_1, drone)
+            # El reseteo de min_distancia y fase_avance ocurre en cambiar_estado
 
     elif estado_actual == ESTADO_ALINEANDO_PUERTA_1:
-        if not target_detected:
+        if not target_detected: # Si perdemos el target mientras alineamos
             objetivo_perdido_contador += 1
             if objetivo_perdido_contador >= CONTADOR_PERDIDO_MAX:
                 print("WARN: P1 perdida alineando, reintentando búsqueda.")
                 await cambiar_estado(ESTADO_BUSCANDO_PUERTA_1, drone)
-        else:
+        else: # Si vemos el target, alineamos
             objetivo_perdido_contador = 0
             alineado_x = abs(offset_x) <= MARGEN_ERROR_X
             alineado_y = abs(offset_y) <= MARGEN_ERROR_Y
@@ -71,25 +87,58 @@ async def mover(drone, offset_x, offset_y, distancia, num_targets):
                 await cambiar_estado(ESTADO_AVANZANDO_PUERTA_1, drone)
 
     elif estado_actual == ESTADO_AVANZANDO_PUERTA_1:
-        if not target_detected:
-            objetivo_perdido_contador += 1
-            if objetivo_perdido_contador >= CONTADOR_PERDIDO_MAX:
-                print("INFO: P1 pasada.")
-                await cambiar_estado(ESTADO_BUSCANDO_PUERTA_2, drone)
-        else:
+        puerta_pasada = False # Flag para saber si hemos detectado paso
+        if target_detected:
             objetivo_perdido_contador = 0
-            velocidad_avance = VELOCIDAD_AVANCE
-            if abs(offset_x) > MARGEN_ERROR_X_ALINEADO: velocidad_lateral = -VELOCIDAD_CORRECCION_X if offset_x < 0 else VELOCIDAD_CORRECCION_X
-            if abs(offset_y) > MARGEN_ERROR_Y_ALINEADO: velocidad_vertical = VELOCIDAD_CORRECCION_Y if offset_y > 0 else -VELOCIDAD_CORRECCION_Y
+
+            min_distancia_vista = min(min_distancia_vista, distancia)
+            if distancia < DISTANCIA_UMBRAL_CERCA:
+                if fase_avance == 'INICIAL': print(f"--- Fase Avance P1: CERCA (Dist: {distancia:.2f}m < {DISTANCIA_UMBRAL_CERCA}m) ---")
+                fase_avance = 'CERCA'
+
+            # Condición de paso 1: Distancia aumenta tras estar cerca
+            if fase_avance == 'CERCA' and distancia > min_distancia_vista + UMBRAL_AUMENTO_DIST:
+                print(f"INFO: P1 pasada (Detectado aumento distancia: {distancia:.2f}m > min {min_distancia_vista:.2f}m + {UMBRAL_AUMENTO_DIST}m)")
+                puerta_pasada = True
+            
+
+            if not puerta_pasada:
+                # Si no hemos detectado paso por distancia, seguimos avanzando y corrigiendo
+                velocidad_avance = VELOCIDAD_AVANCE
+                if abs(offset_x) > MARGEN_ERROR_X_ALINEADO: velocidad_lateral = -VELOCIDAD_CORRECCION_X if offset_x < 0 else VELOCIDAD_CORRECCION_X
+                if abs(offset_y) > MARGEN_ERROR_Y_ALINEADO: velocidad_vertical = VELOCIDAD_CORRECCION_Y if offset_y > 0 else -VELOCIDAD_CORRECCION_Y
+
+        else: # Target NO detectado
+            objetivo_perdido_contador += 1
+            print(f"INFO: P1 no detectado ({objetivo_perdido_contador}/{CONTADOR_PERDIDO_MAX}). Comprobando paso...")
+            # Aplicamos lógica de detener avance mientras se confirma pérdida
+            velocidad_avance = 0.0
+            velocidad_lateral = 0.0
+            velocidad_vertical = 0.0
+            if objetivo_perdido_contador >= CONTADOR_PERDIDO_MAX:
+                # Condición de paso 2: Pérdida confirmada. Verificamos si habíamos estado cerca.
+                if fase_avance == 'CERCA':
+                    print("INFO: P1 pasada (Confirmado por pérdida de objetivo tras estar cerca).")
+                    puerta_pasada = True
+                else:
+                    # Perdimos el objetivo antes de acercarnos lo suficiente
+                    print("WARN: P1 perdida antes de confirmar cercanía. Asumiendo paso igualmente.")
+                    puerta_pasada = True # Simplificación: asumir paso
+
+        if puerta_pasada:
+            await cambiar_estado(ESTADO_BUSCANDO_PUERTA_2, drone)
+            # La velocidad ya está a 0 si se pasó por pérdida, o cambiar_estado la pondrá a 0
+
 
     elif estado_actual == ESTADO_BUSCANDO_PUERTA_2:
-        if target_detected: await cambiar_estado(ESTADO_ALINEANDO_PUERTA_2, drone)
+        if target_detected:
+            await cambiar_estado(ESTADO_ALINEANDO_PUERTA_2, drone)
 
     elif estado_actual == ESTADO_ALINEANDO_PUERTA_2:
         if not target_detected:
             objetivo_perdido_contador += 1
             if objetivo_perdido_contador >= CONTADOR_PERDIDO_MAX:
-                print("WARN: P2 perdida alineando. Misión finalizada.")
+                print("WARN: P2 perdida alineando. Finalizando misión.")
                 await cambiar_estado(ESTADO_MISION_COMPLETA, drone)
         else:
             objetivo_perdido_contador = 0
@@ -101,24 +150,57 @@ async def mover(drone, offset_x, offset_y, distancia, num_targets):
                 await cambiar_estado(ESTADO_AVANZANDO_PUERTA_2, drone)
 
     elif estado_actual == ESTADO_AVANZANDO_PUERTA_2:
-        if not target_detected:
-            objetivo_perdido_contador += 1
-            if objetivo_perdido_contador >= CONTADOR_PERDIDO_MAX:
-                print("INFO: P2 pasada. Misión finalizada.")
-                await cambiar_estado(ESTADO_MISION_COMPLETA, drone)
-        else:
+        puerta_pasada = False
+        if target_detected:
             objetivo_perdido_contador = 0
-            velocidad_avance = VELOCIDAD_AVANCE
-            if abs(offset_x) > MARGEN_ERROR_X_ALINEADO: velocidad_lateral = -VELOCIDAD_CORRECCION_X if offset_x < 0 else VELOCIDAD_CORRECCION_X
-            if abs(offset_y) > MARGEN_ERROR_Y_ALINEADO: velocidad_vertical = VELOCIDAD_CORRECCION_Y if offset_y > 0 else -VELOCIDAD_CORRECCION_Y
+
+            min_distancia_vista = min(min_distancia_vista, distancia)
+            if distancia < DISTANCIA_UMBRAL_CERCA:
+                 if fase_avance == 'INICIAL': print(f"--- Fase Avance P2: CERCA (Dist: {distancia:.2f}m < {DISTANCIA_UMBRAL_CERCA}m) ---")
+                 fase_avance = 'CERCA'
+
+            # Condición de paso 1: Distancia aumenta tras estar cerca
+            if fase_avance == 'CERCA' and distancia > min_distancia_vista + UMBRAL_AUMENTO_DIST:
+                print(f"INFO: P2 pasada (Detectado aumento distancia: {distancia:.2f}m > min {min_distancia_vista:.2f}m + {UMBRAL_AUMENTO_DIST}m)")
+                puerta_pasada = True
+
+            if not puerta_pasada:
+                velocidad_avance = VELOCIDAD_AVANCE
+                if abs(offset_x) > MARGEN_ERROR_X_ALINEADO: velocidad_lateral = -VELOCIDAD_CORRECCION_X if offset_x < 0 else VELOCIDAD_CORRECCION_X
+                if abs(offset_y) > MARGEN_ERROR_Y_ALINEADO: velocidad_vertical = VELOCIDAD_CORRECCION_Y if offset_y > 0 else -VELOCIDAD_CORRECCION_Y
+
+        else: # Target NO detectado
+            objetivo_perdido_contador += 1
+            print(f"INFO: P2 no detectado ({objetivo_perdido_contador}/{CONTADOR_PERDIDO_MAX}). Comprobando paso...")
+            velocidad_avance = 0.0
+            velocidad_lateral = 0.0
+            velocidad_vertical = 0.0
+            if objetivo_perdido_contador >= CONTADOR_PERDIDO_MAX:
+                # Condición de paso 2: Pérdida confirmada.
+                 if fase_avance == 'CERCA':
+                     print("INFO: P2 pasada (Confirmado por pérdida de objetivo tras estar cerca). Misión finalizada.")
+                     puerta_pasada = True
+                 else:
+                     print("WARN: P2 perdida antes de confirmar cercanía. Asumiendo misión finalizada.")
+                     puerta_pasada = True 
+
+        if puerta_pasada:
+            await cambiar_estado(ESTADO_MISION_COMPLETA, drone)
 
     elif estado_actual == ESTADO_MISION_COMPLETA:
-        print("Mision completa")
+        pass # El bucle principal terminará
 
-    if estado_actual != ESTADO_MISION_COMPLETA:
-        await drone.offboard.set_velocity_body(
-            VelocityBodyYawspeed(velocidad_avance, velocidad_lateral, velocidad_vertical, 0.0)
-        )
+    # Solo aplicamos si no hemos llegado al estado final AÚN en esta iteración
+    # y si no estamos en un estado donde cambiar_estado ya puso velocidad 0 (BUSCANDO_P2)
+    if estado_actual not in [ESTADO_MISION_COMPLETA, ESTADO_BUSCANDO_PUERTA_2]:
+         if not (estado_actual == ESTADO_AVANZANDO_PUERTA_1 and not target_detected) and \
+            not (estado_actual == ESTADO_AVANZANDO_PUERTA_2 and not target_detected):
+             await drone.offboard.set_velocity_body(
+                 VelocityBodyYawspeed(velocidad_avance, velocidad_lateral, velocidad_vertical, 0.0)
+             )
+         else:
+             pass
+
 
 async def recibir_posiciones(drone, sock):
     """Bucle principal: recibe UDP y llama a mover()."""
@@ -137,88 +219,98 @@ async def recibir_posiciones(drone, sock):
                 await mover(drone, offset_x, offset_y, distancia, num_targets)
             except ValueError:
                 print(f"WARN: Mensaje UDP inválido: '{mensaje}'")
-                continue
+                continue 
         except Exception as e:
              print(f"ERROR en recibir_posiciones: {e}. Finalizando misión.")
-             await cambiar_estado(ESTADO_MISION_COMPLETA, drone)
+             await cambiar_estado(ESTADO_MISION_COMPLETA, drone) 
              break 
 
     print("--- Bucle principal finalizado ---")
 
 async def run():
-    """Función principal: conecta, prepara y ejecuta la misión."""
     drone = System()
     sock = None
-    global estado_actual
-    estado_actual = ESTADO_BUSCANDO_PUERTA_1 # Estado inicial
+    global estado_actual, min_distancia_vista, fase_avance
+    estado_actual = ESTADO_BUSCANDO_PUERTA_1
+    min_distancia_vista = float('inf')
+    fase_avance = 'INICIAL'
 
     try:
-        print("Conectando...")
+        
         await drone.connect(system_address="udp://:14540")
+
+        print("Esperando conexión con el dron...")
         async for state in drone.core.connection_state():
-            if state.is_connected: print("-- Conectado."); break
+            if state.is_connected:
+                print("-- Conectado al dron!")
+                break
+
+        print("Esperando posición global del dron...")
         async for health in drone.telemetry.health():
-            if health.is_global_position_ok: print("-- GPS OK."); break # Solo GPS para simplificar
-            await asyncio.sleep(1)
+            if health.is_global_position_ok and health.is_home_position_ok:
+                print("-- Posición global OK")
+                break
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.bind((SERVER_IP, SERVER_PORT))
-        print(f"-- Socket UDP en {SERVER_IP}:{SERVER_PORT}")
+        loop = asyncio.get_running_loop()
 
-        print("-- Armando")
+        print("-- Armando dron")
         await drone.action.arm()
-        print("-- Estableciendo setpoint inicial")
-        await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
-        print("-- Iniciando Offboard")
+
+        print("-- Configurando setpoint inicial")
+        await drone.offboard.set_velocity_body(
+            VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
+
+        print("-- Iniciando modo offboard")
         try:
             await drone.offboard.start()
         except OffboardError as error:
-            print(f"FATAL: Error al iniciar Offboard: {error}. Desarmando.")
-            await drone.action.disarm() 
-            if sock: sock.close()
-            return 
+            print(f"Error al iniciar modo offboard: {error._result.result}")
+            print("-- Desarmando dron")
+            await drone.action.disarm()
+            return
 
-        print("-- Despegue")
-        await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, -1.5, 0.0))
-        await asyncio.sleep(4)
-        await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
-        print("-- Altura alcanzada. Iniciando misión.")
+        print("-- Subo")
+        await drone.offboard.set_velocity_body(
+            VelocityBodyYawspeed(0.0, 0.0, -2.0, 0.0))
+        await asyncio.sleep(6)
 
-        # Bucle Principal
+        print("-- Iniciando recepción...")
         await recibir_posiciones(drone, sock)
 
+        print("Objetivo pasado")
+        await drone.offboard.set_velocity_body(
+            VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0)
+        )
+        await asyncio.sleep(1)
+
+
     except Exception as e:
-        print(f"ERROR INESPERADO en run(): {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"Error inesperado: {e}")
     finally:
-        # --- Finalización Segura ---
-        print("--- Finalizando Misión (Bloque Finally) ---")
-        print("-- Deteniendo velocidad")
-        await drone.offboard.set_velocity_body(VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0))
-        await asyncio.sleep(0.5)
+        print("-- Ejecutando bloque Finally: Deteniendo y Aterrizando...")
 
-        print("-- Deteniendo Offboard")
-        try: 
-            await drone.offboard.stop()
-        except OffboardError as error:
-            print(f"WARN: Fallo al detener Offboard: {error}")
+        await drone.offboard.set_velocity_body(
+            VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0)
+        )
 
-        print("-- Aterrizando")
+        print("-- Stopping offboard")
         try:
-            await drone.action.land()
-            await asyncio.sleep(8)
-        except Exception as e:
-            print(f"WARN: Fallo al aterrizar ({e}). Intentando desarmar.")
-            try: 
-                await drone.action.disarm()
-            except Exception as disarm_e:
-                print(f"WARN: Fallo al desarmar: {disarm_e}")
+            await drone.offboard.stop()  # Intenta salir del modo offboard
+        except OffboardError as error:  # Muestra error si no puede detenerlo
+            print(f"Stopping offboard mode failed with error code: {error._result.result}")
 
-        if sock: sock.close(); print("-- Socket cerrado.")
-        print("--- Secuencia de finalización completada. ---")
+        await drone.action.land()
+
+
+
+        if sock:
+            sock.close()
+            print("-- Socket UDP cerrado.")
+        print("-- Secuencia de finalización completada.")
 
 if __name__ == "__main__":
-    print("Iniciando script de control (simplificado)...")
+    print("Iniciando ...")
     asyncio.run(run())
-    print("Script de control (simplificado) finalizado.")
+    print("Script finalizado.")
