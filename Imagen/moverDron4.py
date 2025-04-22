@@ -18,7 +18,7 @@ MARGEN_ERROR_Y_ALINEADO = 5  # Margen de error Y más amplio permitido mientras 
 CONTADOR_PERDIDO_MAX = 10     # Num de ciclos seguidos sin detectar objetivo para confirmar pérdida/paso
 DISTANCIA_UMBRAL_CERCA = 1.7  # Distancia (m) umbral para considerar que estamos "cerca" de la puerta (Dará comienzo a fase_avance) 
 UMBRAL_AUMENTO_DIST = 0.75    # Aumento de distancia (m) necesario tras estar "cerca" para confirmar paso
-
+TIEMPO_AVANCE_EXTRA = 2   # Segundos de avance recto tras detectar paso de puerta
 
 ESTADO_INICIO = 0
 ESTADO_BUSCANDO_PUERTA_1 = 1
@@ -101,6 +101,13 @@ async def mover(drone, offset_x, offset_y, distancia, num_targets):
                 #Es decir, ahora la distancia a la primera puerta que recibo es X, pero yo estuve a una 
                 #distancia menor a esa primera puerta, por lo tanto la he pasado, y la anterior
                 # P2 es ahora la nueva P1 (siempre con un margen de error).
+
+                #Aplicar un avance extra para asegurar el paso de la puerta
+                print(f"--- Puerta 1 Pasada! Aplicando avance extra de {TIEMPO_AVANCE_EXTRA:.1f} segundos ---")
+                await drone.offboard.set_velocity_body(
+                    VelocityBodyYawspeed(VELOCIDAD_AVANCE, 0.0, 0.0, 0.0)
+                )
+                await asyncio.sleep(TIEMPO_AVANCE_EXTRA)
                 puerta_pasada = True
             
 
@@ -164,6 +171,15 @@ async def mover(drone, offset_x, offset_y, distancia, num_targets):
             # Condición de paso 1: Distancia aumenta tras estar cerca
             if fase_avance == 'CERCA' and distancia > min_distancia_vista + UMBRAL_AUMENTO_DIST:
                 print(f"INFO: P2 pasada (Detectado aumento distancia: {distancia:.2f}m > min {min_distancia_vista:.2f}m + {UMBRAL_AUMENTO_DIST}m)")
+
+                #Aplicar un avance extra para asegurar el paso de la puerta
+                print(f"--- Puerta 2 Pasada! Aplicando avance extra de {TIEMPO_AVANCE_EXTRA:.1f} segundos ---")
+                await drone.offboard.set_velocity_body(
+                    VelocityBodyYawspeed(VELOCIDAD_AVANCE, 0.0, 0.0, 0.0)
+                )
+                await asyncio.sleep(TIEMPO_AVANCE_EXTRA)
+                puerta_pasada = True
+
                 puerta_pasada = True
 
             if not puerta_pasada:
