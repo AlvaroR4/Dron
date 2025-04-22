@@ -36,11 +36,10 @@ estado_nombres = {
     ESTADO_AVANZANDO_PUERTA_2: "AVANZANDO_P2", ESTADO_MISION_COMPLETA: "COMPLETA"
 }
 
-estado_actual = ESTADO_INICIO
-objetivo_perdido_contador = 0
-min_distancia_vista = float('inf')
-fase_avance = 'INICIAL'
-
+estado_actual = ESTADO_INICIO             # Variable que almacena el estado actual de la máquina de estados de la misión.
+objetivo_perdido_contador = 0             # Contador de ciclos consecutivos en los que no se detecta el objetivo actual.
+min_distancia_vista = float('inf')        # Guarda la distancia mínima detectada a la puerta actual (se resetea para cada puerta).
+fase_avance = 'INICIAL'                   # Indica la fase del avance hacia la puerta actual ('INICIAL' o 'CERCA').
 
 async def cambiar_estado(nuevo_estado, drone):
     """Cambia estado, loggea, resetea variables y detiene dron si es necesario."""
@@ -99,6 +98,9 @@ async def mover(drone, offset_x, offset_y, distancia, num_targets):
             # Condición de paso 1: Distancia aumenta tras estar cerca
             if fase_avance == 'CERCA' and distancia > min_distancia_vista + UMBRAL_AUMENTO_DIST:
                 print(f"INFO: P1 pasada (Detectado aumento distancia: {distancia:.2f}m > min {min_distancia_vista:.2f}m + {UMBRAL_AUMENTO_DIST}m)")
+                #Es decir, ahora la distancia a la primera puerta que recibo es X, pero yo estuve a una 
+                #distancia menor a esa primera puerta, por lo tanto la he pasado, y la anterior
+                # P2 es ahora la nueva P1 (siempre con un margen de error).
                 puerta_pasada = True
             
 
