@@ -1,3 +1,7 @@
+"""
+Version inicial similar a la de test_script.py
+"""
+
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
