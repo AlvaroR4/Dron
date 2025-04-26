@@ -61,8 +61,8 @@ ultima_posicion_ned = None
 log_task = None
 
 def escribir_csv(filename, data_row):
-        open(filename, mode='a', newline='', encoding='utf-8')
-        writer = csv.writer(filename)
+    with open(filename, mode='a', newline='', encoding='utf-8') as file_object:
+        writer = csv.writer(file_object)
         writer.writerow(data_row)
 
 async def log_trayectoria(drone):
@@ -283,7 +283,6 @@ async def run():
         sock.bind((SERVER_IP, SERVER_PORT))
         loop = asyncio.get_running_loop()
 
-        global log_task
         log_task = asyncio.create_task(log_trayectoria(drone))
 
         print("-- Armando dron")
@@ -322,7 +321,6 @@ async def run():
     finally:
         print("-- Ejecutando bloque Finally: Deteniendo y Aterrizando...")
 
-        global log_task
         if log_task and not log_task.done():
             log_task.cancel()
             await asyncio.wait_for(log_task, timeout=1.0)
