@@ -29,7 +29,7 @@ class ImageProcessorSimple(Node):
         super().__init__('image_processor_simple')
         self.subscription = self.create_subscription(
             Image,
-            '/world/puertas2/model/x500_mono_cam_0/link/camera_link/sensor/imager/image',
+            '/world/puertas3/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image',
             self.listener_callback,
             10)
         self.br = CvBridge()

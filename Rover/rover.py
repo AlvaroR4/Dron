@@ -13,7 +13,7 @@ from mavsdk import System
 
 async def run(rover):
     print("Esperando conexión...")
-    await rover.connect(system_address="udp://:14541")
+    await rover.connect(system_address="udp://:14540")
 	
     print("Esperando conexión...")
     async for state in rover.core.connection_state():
