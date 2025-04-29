@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sdf version="1.9">
+  <model name="puerta_roja_grande">  <static>true</static>
+    <link name="soporte"> <pose>0 0 0.25 0 0 0</pose>
+      <collision name="col_soporte"><geometry><box><size>0.1 0.1 0.5</size></box></geometry></collision>
+      <visual name="vis_soporte"><geometry><box><size>0.1 0.1 0.5</size></box></geometry><material><ambient>1 0 0 1</ambient><diffuse>1 0 0 1</diffuse></material></visual>
+    </link>
+    <link name="barra_inferior">
+      <pose>0 0 0.55 0 0 0</pose>
+      <collision name="col_inferior"><geometry><box><size>1.7 0.1 0.1</size></box></geometry></collision>
+      <visual name="vis_inferior"><geometry><box><size>1.7 0.1 0.1</size></box></geometry><material><ambient>1 0 0 1</ambient><diffuse>1 0 0 1</diffuse></material></visual>
+    </link>
+    <link name="barra_superior">
+      <pose>0 0 2.55 0 0 0</pose>
+      <collision name="col_superior"><geometry><box><size>1.7 0.1 0.1</size></box></geometry></collision>
+      <visual name="vis_superior"><geometry><box><size>1.7 0.1 0.1</size></box></geometry><material><ambient>1 0 0 1</ambient><diffuse>1 0 0 1</diffuse></material></visual>
+    </link>
+    <link name="barra_izquierda">
+      <pose>-0.8 0 1.55 0 0 0</pose>
+      <collision name="col_izquierda"><geometry><box><size>0.1 0.1 2.0</size></box></geometry></collision>
+      <visual name="vis_izquierda"><geometry><box><size>0.1 0.1 2.0</size></box></geometry><material><ambient>1 0 0 1</ambient><diffuse>1 0 0 1</diffuse></material></visual>
+    </link>
+    <link name="barra_derecha">
+      <pose>0.8 0 1.55 0 0 0</pose>
+      <collision name="col_derecha"><geometry><box><size>0.1 0.1 2.0</size></box></geometry></collision>
+      <visual name="vis_derecha"><geometry><box><size>0.1 0.1 2.0</size></box></geometry><material><ambient>1 0 0 1</ambient><diffuse>1 0 0 1</diffuse></material></visual>
+    </link>
+    <joint name="joint_soporte_inferior" type="fixed"><parent>soporte</parent><child>barra_inferior</child></joint>
+    <joint name="joint_inferior_izquierda" type="fixed"><parent>barra_inferior</parent><child>barra_izquierda</child></joint>
+    <joint name="joint_inferior_derecha" type="fixed"><parent>barra_inferior</parent><child>barra_derecha</child></joint>
+    <joint name="joint_inferior_superior" type="fixed"><parent>barra_inferior</parent><child>barra_superior</child></joint>
+    </model>
+</sdf>

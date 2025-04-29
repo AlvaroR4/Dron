@@ -35,17 +35,13 @@ ESTADO_INICIO = 0
 ESTADO_BUSCANDO = 1
 ESTADO_ALINEANDO = 2
 ESTADO_AVANZANDO = 3
-ESTADO_BUSCANDO_PUERTA_2 = 4
-ESTADO_ALINEANDO_PUERTA_2 = 5
-ESTADO_AVANZANDO_PUERTA_2 = 6
 ESTADO_MISION_COMPLETA = 7
 CONTADOR_BUSQUEDA_MAX = 50 # Num máx de ciclos buscando sin encontrar antes de terminar
 
 estado_nombres = {
-    ESTADO_INICIO: "INICIO", ESTADO_BUSCANDO: "BUSCANDO_P1",
-    ESTADO_ALINEANDO: "ALINEANDO_P1", ESTADO_AVANZANDO: "AVANZANDO_P1",
-    ESTADO_BUSCANDO_PUERTA_2: "BUSCANDO_P2", ESTADO_ALINEANDO_PUERTA_2: "ALINEANDO_P2",
-    ESTADO_AVANZANDO_PUERTA_2: "AVANZANDO_P2", ESTADO_MISION_COMPLETA: "COMPLETA"
+    ESTADO_INICIO: "INICIO", ESTADO_BUSCANDO: "BUSCANDO_PUERTA",
+    ESTADO_ALINEANDO: "ALINEANDO", ESTADO_AVANZANDO: "AVANZANDO",
+    ESTADO_MISION_COMPLETA: "COMPLETA"
 }
 
 
@@ -67,13 +63,27 @@ def escribir_csv(filename, data_row):
 
 async def log_trayectoria(drone):
     """Tarea asíncrona que guardda la posición NED periódicamente."""
-    global ultima_posicion_ned 
-    async for position_ned in drone.telemetry.position_velocity_ned():
-        ultima_posicion_ned = position_ned
-        timestamp = datetime.datetime.now().isoformat()
-        pos = position_ned.position
-        escribir_csv(ARCHIVO_TRAYECTORIA, [timestamp, pos.north_m, pos.east_m, pos.down_m])
-        await asyncio.sleep(0.1)
+    global ultima_posicion_ned
+    #print("--- Iniciando Tarea de Logging de Trayectoria (con Debug Print) ---")
+    try:
+        async for odometry in drone.telemetry.position_velocity_ned():
+            ultima_posicion_ned = odometry
+            timestamp = datetime.datetime.now().isoformat()
+            pos = odometry.position
+
+            # >>> AÑADIR ESTE PRINT PARA VER LOS DATOS <<<
+            #print(f"DEBUG Log: T={timestamp}, N={pos.north_m:.4f}, E={pos.east_m:.4f}, D={pos.down_m:.4f}")
+
+            # Llamada a escribir CSV (asumimos que está corregida)
+            #escribir_csv(ARCHIVO_TRAYECTORIA, [timestamp, pos.north_m, pos.east_m, pos.down_m])
+            await asyncio.sleep(0.1)
+    except asyncio.CancelledError:
+        # print("--- Tarea de Logging de Trayectoria Cancelada ---") # Opcional
+        pass
+    except Exception as e:
+        print(f"ERROR en Tarea de Logging de Trayectoria: {e}")
+    # finally:
+        # print("--- Finalizando Tarea de Logging de Trayectoria ---") # Opcional
 
 async def cambiar_estado(nuevo_estado, drone):
     """Cambia estado, loggea, resetea variables y detiene dron si es necesario."""
@@ -189,7 +199,6 @@ async def mover(drone, offset_x, offset_y, distancia, num_targets):
                 escribir_csv(ARCHIVO_PASO_PUERTAS, [timestamp, pos.north_m, pos.east_m, pos.down_m])
             else:
                 print(f"WARN: No hay datos de posición para loggear paso Puerta {puertas_pasadas + 1}.")
-
             puertas_pasadas += 1
 
             # Aplicar avance extra
