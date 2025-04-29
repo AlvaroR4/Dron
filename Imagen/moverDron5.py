@@ -62,28 +62,21 @@ def escribir_csv(filename, data_row):
         writer.writerow(data_row)
 
 async def log_trayectoria(drone):
-    """Tarea asíncrona que guardda la posición NED periódicamente."""
+    #Tarea asíncrona que guardda la posición NED periódicamente
     global ultima_posicion_ned
     #print("--- Iniciando Tarea de Logging de Trayectoria (con Debug Print) ---")
-    try:
-        async for odometry in drone.telemetry.position_velocity_ned():
-            ultima_posicion_ned = odometry
-            timestamp = datetime.datetime.now().isoformat()
-            pos = odometry.position
+    async for odometry in drone.telemetry.position_velocity_ned():
+        ultima_posicion_ned = odometry
+        timestamp = datetime.datetime.now().isoformat()
+        pos = odometry.position
 
-            # >>> AÑADIR ESTE PRINT PARA VER LOS DATOS <<<
-            #print(f"DEBUG Log: T={timestamp}, N={pos.north_m:.4f}, E={pos.east_m:.4f}, D={pos.down_m:.4f}")
+        # >>> AÑADIR ESTE PRINT PARA VER LOS DATOS <<<
+        #print(f"DEBUG Log: T={timestamp}, N={pos.north_m:.4f}, E={pos.east_m:.4f}, D={pos.down_m:.4f}")
 
-            # Llamada a escribir CSV (asumimos que está corregida)
-            #escribir_csv(ARCHIVO_TRAYECTORIA, [timestamp, pos.north_m, pos.east_m, pos.down_m])
-            await asyncio.sleep(0.1)
-    except asyncio.CancelledError:
-        # print("--- Tarea de Logging de Trayectoria Cancelada ---") # Opcional
-        pass
-    except Exception as e:
-        print(f"ERROR en Tarea de Logging de Trayectoria: {e}")
-    # finally:
-        # print("--- Finalizando Tarea de Logging de Trayectoria ---") # Opcional
+        # Llamada a escribir CSV (asumimos que está corregida)
+        #escribir_csv(ARCHIVO_TRAYECTORIA, [timestamp, pos.north_m, pos.east_m, pos.down_m])
+        #await asyncio.sleep(0.1)
+
 
 async def cambiar_estado(nuevo_estado, drone):
     """Cambia estado, loggea, resetea variables y detiene dron si es necesario."""
@@ -251,7 +244,8 @@ async def recibir_posiciones(drone, sock):
 async def run():
     drone = System()
     sock = None
-    global estado_actual, min_distancia_vista, fase_avance, log_task
+    global estado_actual, min_distancia_vista, fase_avance
+    global log_task
     global ciclos_sin_objetivo_buscando, puertas_pasadas 
     estado_actual = ESTADO_BUSCANDO
     min_distancia_vista = float('inf')
@@ -329,11 +323,9 @@ async def run():
         print(f"Error inesperado: {e}")
     finally:
         print("-- Ejecutando bloque Finally: Deteniendo y Aterrizando...")
-
         if log_task and not log_task.done():
             log_task.cancel()
             await asyncio.wait_for(log_task, timeout=1.0)
-
 
         await drone.offboard.set_velocity_body(
             VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0)
