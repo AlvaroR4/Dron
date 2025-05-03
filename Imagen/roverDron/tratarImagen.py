@@ -18,11 +18,11 @@ import math
 
 SERVER_IP = "127.0.0.1"
 SERVER_PORT = 65432
-TAMANO_REAL_PUERTA_M = 1.5
+TAMANO_REAL_PUERTA_M = 1.0
 DISTANCIA_FOCAL_PIXELS = 539.35
-MIN_CONTOUR_AREA = 150
-COLOR_LOWER = np.array([0, 0, 0])
-COLOR_UPPER = np.array([0, 0, 255])
+MIN_CONTOUR_AREA = 2
+COLOR_LOWER = np.array([0, 0, 100])   # BGR Valores bajos
+COLOR_UPPER = np.array([80, 80, 255]) # BGR Valores altos
 
 class ImageProcessorSimple(Node):
     def __init__(self):
