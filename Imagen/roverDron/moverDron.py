@@ -19,10 +19,10 @@ MAVSDK_PORT = 50051
 
 VELOCIDAD_CORRECCION_X = 0.4  # Velocidad LATERAL (Y) por error en X de imagen
 VELOCIDAD_CORRECCION_Y = 0.4  # Velocidad AVANCE (X) por error en Y de imagen
-VELOCIDAD_DESCENSO = 0.2     
+VELOCIDAD_DESCENSO = 0.2 
 
-MARGEN_ERROR_X = 5          # Error máx. permitido en píxeles (offset X imagen) para considerar alineado
-MARGEN_ERROR_Y = 5           # Error máx. permitido en píxeles (offset Y imagen) para considerar alineado
+MARGEN_ERROR_X = 40        # Error máx. permitido en píxeles (offset X imagen) para considerar alineado
+MARGEN_ERROR_Y = 40           # Error máx. permitido en píxeles (offset Y imagen) para considerar alineado
 MARGEN_ERROR_X_ALINEADO = 5
 MARGEN_ERROR_Y_ALINEADO = 5
 
@@ -84,9 +84,9 @@ async def mover(drone, offset_x, offset_y, distancia, num_targets):
             await cambiar_estado(ESTADO_BUSCANDO_PLATAFORMA, drone)
         else: 
             #Comprobamos si necesita corrección en eje X;
-            if abs(offset_x) > MARGEN_ERROR_X:
-                print(f"--- Estado: Alineando X --- Recibido Offset X: {offset_x:.1f}")
-                if offset_x > 0:
+            if abs(offset_y) > MARGEN_ERROR_X:
+                print(f"--- Estado: Alineando X --- Recibido Offset X: {offset_y:.1f}")
+                if offset_y > 0:
                     velocidad_lateral = -VELOCIDAD_CORRECCION_X
                     print(f"Moviendo IZQUIERDA ({velocidad_lateral=})")
                 else:
@@ -95,9 +95,9 @@ async def mover(drone, offset_x, offset_y, distancia, num_targets):
                 #Asignamos VELOCIDAD_CORRECION_X a velocidad_lateral con su correspondiente signo
 
             #Comprbamos si necesita corrección en eje Y;
-            if abs(offset_y) > MARGEN_ERROR_Y:
-                print(f"--- Estado: Alineando Y --- Recibido Offset Y: {offset_y:.1f}")
-                if offset_y > 0:
+            if abs(-offset_x) > MARGEN_ERROR_Y:
+                print(f"--- Estado: Alineando Y --- Recibido Offset Y: {offset_x:.1f}")
+                if -offset_x > 0:
                     velocidad_vertical = -VELOCIDAD_CORRECCION_Y
                     print(f"Moviendo ARRIBA ({velocidad_vertical=})")
                 else:
@@ -115,9 +115,9 @@ async def mover(drone, offset_x, offset_y, distancia, num_targets):
 
     elif estado_actual == ESTADO_DESCENDIENDO:
         if target_detected:
-            if abs(offset_x) > MARGEN_ERROR_X_ALINEADO:
-                print(f"--- Estado: Alineando X --- Recibido Offset X: {offset_x:.1f}")
-                if offset_x > 0:
+            if abs(offset_y) > MARGEN_ERROR_X_ALINEADO:
+                print(f"--- Estado: Alineando X --- Recibido Offset X: {offset_y:.1f}")
+                if offset_y > 0:
                     velocidad_lateral = -VELOCIDAD_CORRECCION_X
                     print(f"Moviendo IZQUIERDA ({velocidad_lateral=})")
                 else:
@@ -126,9 +126,9 @@ async def mover(drone, offset_x, offset_y, distancia, num_targets):
                 #Asignamos VELOCIDAD_CORRECION_X a velocidad_lateral con su correspondiente signo
 
             #Comprbamos si necesita corrección en eje Y;
-            if abs(offset_y) > MARGEN_ERROR_Y_ALINEADO:
-                print(f"--- Estado: Alineando Y --- Recibido Offset Y: {offset_y:.1f}")
-                if offset_y > 0:
+            if abs(-offset_x) > MARGEN_ERROR_Y_ALINEADO:
+                print(f"--- Estado: Alineando Y --- Recibido Offset Y: {offset_x:.1f}")
+                if -offset_x > 0:
                     velocidad_vertical = -VELOCIDAD_CORRECCION_Y
                     print(f"Moviendo ARRIBA ({velocidad_vertical=})")
                 else:
@@ -239,7 +239,7 @@ async def run():
         print("-- Subo")
         await drone.offboard.set_velocity_body(
             VelocityBodyYawspeed(0.0, 0.0, -2.0, 0.0))
-        await asyncio.sleep(12)
+        await asyncio.sleep(8.5)
 
         await recibir_posiciones(drone, sock)
 

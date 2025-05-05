@@ -3,12 +3,12 @@ import math
 from mavsdk import System
 from mavsdk.offboard import OffboardError, PositionNedYaw
 
-MAVSDK_PORT = 50040
+MAVSDK_PORT = 50050
 
 LARGO_PISTA = 12.0  # Metros (longitud de las rectas)
 ANCHO_PISTA = 5.0   # Metros (distancia entre las rectas, = 2 * Radio)
 ALTITUD_ROVER = -0.5 # Metros NED (negativo para estar sobre el origen Z=0)
-VELOCIDAD_MOVIMIENTO = 1.5 # m/s - Velocidad media deseada entre waypoints
+VELOCIDAD_MOVIMIENTO = 0.00005 # m/s - Velocidad media deseada entre waypoints
 
 # P0: Inicio Recta 1
 # P1: Fin Recta 1 / Inicio Curva 1
