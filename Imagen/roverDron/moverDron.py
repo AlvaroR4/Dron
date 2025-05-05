@@ -105,7 +105,7 @@ async def mover(drone, offset_x, offset_y, distancia, num_targets):
                     print(f"Moviendo ABAJO ({velocidad_vertical=})")
                 #Asignamos VELOCIDAD_CORRECION_Y a velocidad_vertical con su correspondiente signo
             
-            if abs(offset_x) > MARGEN_ERROR_X and abs(offset_y) > MARGEN_ERROR_Y:
+            if abs(offset_x) < MARGEN_ERROR_X and abs(offset_y) < MARGEN_ERROR_Y:
                 print(f"--- Alineado horizontalmente sobre plataforma (Offsets: X={offset_x:.0f}, Y={offset_y:.0f}). Iniciando descenso. ---")
                 await cambiar_estado(ESTADO_DESCENDIENDO, drone)
             else:

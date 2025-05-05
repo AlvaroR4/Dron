@@ -18,7 +18,7 @@ PX4_SYS_AUTOSTART=4009 PX4_GZ_MODEL_POSE="1,1" PX4_SIM_PORT=14541 PX4_SIM_MODEL=
 
 
 3º Lanzar instancia del Dron:
-PX4_SYS_AUTOSTART=4001 PX4_GZ_MODEL_POSE="-2,1 PX4_SIM_MODEL=gz_x500_mono_cam_down ./build/px4_sitl_default/bin/px4 -i 2
+PX4_SYS_AUTOSTART=4001 PX4_GZ_MODEL_POSE="-2,1" PX4_SIM_MODEL=gz_x500_mono_cam_down ./build/px4_sitl_default/bin/px4 -i 2
 
 
 4º Ejecutar punte de ros_gz para la imagen: 
