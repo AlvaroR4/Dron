@@ -5,6 +5,8 @@ sudo apt update
 sudo apt install ffmpeg
 
 pip install pynput
+
+pip install djitellopy opencv-python numpy pynput
 """
 
 
