@@ -18,7 +18,7 @@ import numpy as np
 # import matplotlib.pyplot as plt # Ya no se usa matplotlib
 
 # --- Configuración ---
-CAMARA_TOPIC = '/world/puertas3/model/x500_mono_cam_0/link/camera_link/sensor/imager/image'
+CAMARA_TOPIC = '/world/default/model/x500_mono_cam_0/link/camera_link/sensor/imager/image'
 # Modelo MiDaS a usar ("MiDaS_small", "MiDaS", "DPT_Large", "DPT_Hybrid")
 MODEL_TYPE = "MiDaS_small"
 # Mapa de color de OpenCV a usar (ver opciones en la documentación de OpenCV: COLORMAP_...)

@@ -6,7 +6,6 @@ de la profundidad en un archivo CSV.
 
 Dependencias:
   pip install opencv-python torch torchvision torchaudio numpy
-  (Asegúrate de tener un entorno donde PyTorch pueda acceder a CUDA si tienes GPU)
 """
 
 import cv2
