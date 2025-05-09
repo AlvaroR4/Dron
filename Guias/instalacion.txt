@@ -83,3 +83,11 @@ source /opt/ros/humble/setup.bash
 
 cd ~/ws
 colcon build
+
+---ENTORNO VIRTUAL ROS2
+python3 -m venv simulacion
+pip install opencv-python torch torchvision torchaudio "numpy<2.0" timm mavsdk
+
+---ENTORNO VIRTUAL TELLO
+python3 -m venv tello
+pip install djitellopy opencv-python numpy pynput
