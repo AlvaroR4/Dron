@@ -198,9 +198,9 @@ async def mover(tello, offset_x, offset_y, distancia, num_targets):
 
             print(f"--- Aplicando avance extra de {TIEMPO_AVANCE_EXTRA:.1f} segundos ---")
             try:
-                tello.send_rc_control(0, VELOCIDAD_AVANCE_TELLO, 0, 0)
+                #tello.send_rc_control(0, VELOCIDAD_AVANCE_TELLO, 0, 0)
                 await asyncio.sleep(TIEMPO_AVANCE_EXTRA)
-                tello.send_rc_control(0, 0, 0, 0)
+                #tello.send_rc_control(0, 0, 0, 0)
                 print("--- Avance extra completado ---")
             except Exception as e:
                 print(f"Warn: Error durante el avance extra: {e}")
@@ -221,7 +221,8 @@ async def mover(tello, offset_x, offset_y, distancia, num_targets):
     if estado_actual not in [ESTADO_MISION_COMPLETA, ESTADO_ATERRIZANDO]:
         if not (estado_actual == ESTADO_BUSCANDO and lr==0 and fb==0 and ud==0 and yv==0) and \
            not (estado_actual == ESTADO_AVANZANDO and not target_detected):
-            tello.send_rc_control(lr, fb, ud, yv)
+            #tello.send_rc_control(lr, fb, ud, yv)
+            print("INFO send_rc")
 
 
 async def recibir_posiciones(tello, sock):
@@ -341,7 +342,7 @@ async def run():
 
         print("-- Despegando...")
         try:
-             tello.takeoff()
+             #tello.takeoff()
              await asyncio.sleep(5) 
         except Exception as takeoff_err:
              print(f"ERROR al despegar: {takeoff_err}. Abortando.")
@@ -377,7 +378,7 @@ async def run():
             try:
                 tello.send_rc_control(0, 0, 0, 0)
                 await asyncio.sleep(0.5)
-                tello.land()
+                #tello.land()
                 print("-- Comando de aterrizaje enviado. Esperando...")
                 await asyncio.sleep(5)
             except Exception as land_err:

@@ -121,6 +121,7 @@ class TelloRedDetectorRGBPublisher(Node): # Nombre de clase actualizado
 
 
     def timer_callback(self):
+
         if self.frame_reader is None or not self.tello_connected:
             self.get_logger().warn("frame_reader no disponible o Tello no conectado en timer_callback.", throttle_duration_sec=5.0)
             return
