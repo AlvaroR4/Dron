@@ -36,9 +36,9 @@ ESTADO_INICIO = 0
 ESTADO_BUSCANDO = 1
 ESTADO_ALINEANDO = 2
 ESTADO_AVANZANDO = 3
-ESTADO_AVANCE_EXTRA = 4 # Nuevo estado para el avance post-paso
-ESTADO_MISION_COMPLETA = 5 # Renumerado
-ESTADO_ERROR = 6           # Renumerado
+ESTADO_AVANCE_EXTRA = 4
+ESTADO_MISION_COMPLETA = 5 
+ESTADO_ERROR = 6
 
 estado_nombres = {
     ESTADO_INICIO: "INICIO", ESTADO_BUSCANDO: "BUSCANDO_PUERTA",
@@ -46,7 +46,6 @@ estado_nombres = {
     ESTADO_AVANCE_EXTRA: "AVANCE_EXTRA_POST_PASO",
     ESTADO_MISION_COMPLETA: "MISION_COMPLETADA", ESTADO_ERROR: "ERROR_EN_MISION"
 }
-# --- Fin Constantes ---
 
 class NodoControlLogica(Node):
     def __init__(self):
@@ -115,14 +114,13 @@ class NodoControlLogica(Node):
         if self.estado_actual != nuevo_estado:
             self.get_logger().info(f"CAMBIO ESTADO: {estado_actual_nombre} -> {nuevo_estado_nombre}")
             self.estado_actual = nuevo_estado
-            self.objetivo_perdido_contador = 0 # Resetear en cada cambio de estado principal
-            self.ciclos_sin_objetivo_buscando = 0 # Resetear si salimos de búsqueda
+            self.objetivo_perdido_contador = 0
+            self.ciclos_sin_objetivo_buscando = 0 
 
             if nuevo_estado == ESTADO_ALINEANDO or nuevo_estado == ESTADO_BUSCANDO:
                 self.min_distancia_vista_actual_puerta = float('inf')
                 self.fase_avance_actual_puerta = 'INICIAL'
 
-            # Si entramos en un estado que no requiere movimiento activo o es una transición, enviar parada
             if nuevo_estado in [ESTADO_BUSCANDO, ESTADO_MISION_COMPLETA, ESTADO_ERROR]:
                 self.publicar_velocidades(0, 0, 0, 0)
 
@@ -149,7 +147,6 @@ class NodoControlLogica(Node):
         lr, fb, ud, yv = 0, 0, 0, 0
         objetivo_detectado_valido = num_targets > 0 and distancia_m > 0 and distancia_m != float('inf')
 
-        # --- Lógica de Estados (adaptada de moverTello_ANTIGUO.py mover()) ---
         if self.estado_actual == ESTADO_BUSCANDO:
             if objetivo_detectado_valido:
                 self.get_logger().info(f"¡Objetivo encontrado! (Puerta #{self.puertas_pasadas_contador + 1}) Dist: {distancia_m:.2f}m")
@@ -168,9 +165,9 @@ class NodoControlLogica(Node):
                         self.cambiar_estado(ESTADO_MISION_COMPLETA)
                     else:
                         self.get_logger().warn("No se encontró ni la primera puerta tras búsqueda. Revisar entorno/detección.")
-                        self.cambiar_estado(ESTADO_ERROR) # O MISION_COMPLETA si se prefiere no indicar error
-                # Podría implementarse una estrategia de búsqueda aquí (girar, moverse, etc.)
-                # Por ahora, se queda quieto o con el último comando (que sería 0,0,0,0 al entrar en BUSCANDO)
+                        self.cambiar_estado(ESTADO_ERROR) 
+                        
+                # AQUÍ SE PODRÍA IMPLEMENTAR COSAS COMO GIRAR EL DRON PARA BUSCAR
                 lr, fb, ud, yv = 0, 0, 0, VELOCIDAD_YAW_TELLO // 3 # Pequeño giro para buscar
 
         elif self.estado_actual == ESTADO_ALINEANDO:

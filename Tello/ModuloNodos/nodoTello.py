@@ -43,9 +43,7 @@ class NodoCamaraTello(Node):
 
             if self.tello.get_battery() < 20:
                 self.get_logger().error("¡¡¡BATERÍA BAJA!!! No se despegará. Cancela y carga la batería.")
-                # No se levanta SystemExit para permitir que el nodo se cierre limpiamente
-                # rclpy.shutdown() podría no ser seguro aquí si se llama desde __init__ antes de que el spin comience
-                return # Salir del init si la batería es baja
+                return 
 
             self.get_logger().info("Iniciando stream de vídeo...")
             self.tello.streamoff()
@@ -56,25 +54,19 @@ class NodoCamaraTello(Node):
             if self.frame_reader is None:
                 raise RuntimeError("frame_reader es None después de streamon().")
             self.get_logger().info("Stream activado y frame_reader obtenido.")
-            time.sleep(1.0) # Pausa para estabilizar stream
-
+            time.sleep(1.0) 
             self.get_logger().info("¡DESPEGANDO! Mantén el área despejada.")
             # self.tello.takeoff() 
             self.get_logger().info("Despegue simulado completado (takeoff() está comentado). Altura actual: N/A (simulado)")
-            # En un dron real, podrías esperar a que el estado de despegue se confirme
-            # o usar tello.get_height() para verificar.
-            self.despegue_realizado = True # Asumir despegue completado
-            time.sleep(2) # Tiempo para estabilizarse tras despegar
+            self.despegue_realizado = True 
+            time.sleep(2) 
 
 
         except Exception as e:
             self.get_logger().fatal(f"Error crítico inicializando Tello o despegando: {e}")
             self.get_logger().fatal(traceback.format_exc())
             self.cleanup_recursos()
-            # Indicar que el nodo no debe continuar
-            # Es mejor dejar que rclpy.spin falle si el nodo no está bien inicializado
-            # o manejarlo en el main. Por ahora, marcaremos que no está listo.
-            self.tello_conectado = False # Asegurar que no se intente usar si falló
+            self.tello_conectado = False 
             return
 
 
@@ -111,7 +103,6 @@ class NodoCamaraTello(Node):
 
     def monitor_teclado(self):
         self.get_logger().info("[Hilo Teclado] Iniciado. Escuchando 'f' (emergencia) y esperando Ctrl+C.")
-        # pynput no detecta bien Ctrl+C como una tecla normal en todos los terminales
         # Ctrl+C se maneja mejor con la excepción KeyboardInterrupt en el hilo principal de rclpy.spin()
         def on_press(key):
             try:
@@ -215,10 +206,10 @@ class NodoCamaraTello(Node):
                     self.get_logger().error(f"Excepción durante tello.emergency(): {e_emergency}")
                 # Después de emergency(), el dron podría no responder a más comandos.
 
-            elif self.despegue_realizado and aterrizar_normalmente : # Solo aterrizar si despegó y no fue emergencia
+            elif self.despegue_realizado and aterrizar_normalmente : 
                 self.get_logger().info("Intentando aterrizar el Tello...")
                 try:
-                    # self.tello.land() # *** DESCOMENTAR PARA ATERRIZAJE REAL ***
+                    # self.tello.land()
                     self.get_logger().info("Comando de aterrizaje (land()) SIMULADO.")
                     # En un dron real, esperarías a que el aterrizaje se complete.
                     # time.sleep(5) # Espera simulada para aterrizaje
@@ -246,8 +237,6 @@ class NodoCamaraTello(Node):
 
     def destroy_node(self):
         self.get_logger().info("Destruyendo NodoCamaraTello...")
-        # Si KeyboardInterrupt causó la salida, aterrizaje_solicitado podría no estar True
-        # pero queremos aterrizar de todas formas si no fue una emergencia.
         self.cleanup_recursos(aterrizar_normalmente=not self.parada_emergencia_solicitada)
         super().destroy_node()
 
@@ -256,8 +245,7 @@ def main(args=None):
     nodo_camara = None
     try:
         nodo_camara = NodoCamaraTello()
-        if not nodo_camara.tello_conectado and not nodo_camara.parada_emergencia_solicitada: # Si falló la conexión inicial y no fue por batería baja que permite cierre limpio
-             # O si falló el despegue (si se implementa chequeo)
+        if not nodo_camara.tello_conectado and not nodo_camara.parada_emergencia_solicitada:
             raise RuntimeError("Fallo en la inicialización del nodo cámara, no se puede continuar.")
 
         if nodo_camara.tello.get_battery() < 20 and nodo_camara.tello_conectado: # Doble chequeo por si no salió del init

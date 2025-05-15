@@ -8,29 +8,23 @@ import cv2
 import numpy as np
 import traceback
 
-# Topics ROS
 ROS_TOPIC_IMAGEN_RAW_INPUT = '/tello/imagen_raw' # Desde nodo_camara_tello
 ROS_TOPIC_IMAGEN_PROCESADA_OUTPUT = '/tello/imagen_procesada'
 ROS_TOPIC_DATOS_DETECCION_OUTPUT = '/tello/datos_deteccion'
 
-# Dimensiones de procesamiento
 FRAME_WIDTH_PROC = 640
 FRAME_HEIGHT_PROC = 480
 
-# Parámetros de Detección
-TAMANO_REAL_PUERTA_M = 1.5      # Tamaño real del objeto (puerta/marco) en metros (altura o ancho)
-DISTANCIA_FOCAL_PIXELS_TELLO = 920 # Distancia focal de la cámara del Tello en píxeles. ¡CALIBRAR!
-                                   # Este valor depende de la resolución usada para la calibración.
-                                   # Si FRAME_WIDTH_PROC/FRAME_HEIGHT_PROC es diferente a la calibración, ajustar.
-MIN_CONTOUR_AREA_TELLO = 2000    # Área mínima del contorno para ser considerado una detección válida. ¡AJUSTAR!
+TAMANO_REAL_PUERTA_M = 1.5      # Tamaño real del objeto en metros (altura o ancho)
+DISTANCIA_FOCAL_PIXELS_TELLO = 920
+MIN_CONTOUR_AREA_TELLO = 200
 
-# Rangos HSV para ROJO (¡¡AJUSTAR CON CALIBRADOR HSV!!)
+# Rangos HSV para ROJO 
 # El rojo a menudo cruza el límite 0/179 en el espacio HUE de OpenCV
 COLOR_LOWER_1 = np.array([0, 130, 90])
 COLOR_UPPER_1 = np.array([10, 255, 255])
 COLOR_LOWER_2 = np.array([160, 130, 90])
 COLOR_UPPER_2 = np.array([179, 255, 255])
-# --- Fin Constantes ---
 
 def calcular_distancia(tamanio_aparente_pixels, distancia_focal_pixels, tamano_real_objeto_m):
     if tamanio_aparente_pixels <= 1: # Evitar división por cero o valores muy pequeños
@@ -93,9 +87,8 @@ class NodoProcesadorImagen(Node):
             return
 
         try:
-            # --- Inicio Lógica de Procesamiento de tratarTello_ANTIGUO.py ---
+            #Inicio Lógica de Procesamiento
             img_proc_bgr = cv2.resize(current_frame_bgr_raw, (FRAME_WIDTH_PROC, FRAME_HEIGHT_PROC))
-            # Para dibujar, es mejor una copia. La conversión a RGB se hará al final si es necesario.
             img_con_dibujos_bgr = img_proc_bgr.copy()
 
             # 1. Segmentación de Color Rojo usando HSV
@@ -103,11 +96,6 @@ class NodoProcesadorImagen(Node):
             mask1_red = cv2.inRange(img_hsv, COLOR_LOWER_1, COLOR_UPPER_1)
             mask2_red = cv2.inRange(img_hsv, COLOR_LOWER_2, COLOR_UPPER_2)
             final_mask_red = cv2.bitwise_or(mask1_red, mask2_red)
-
-            # Opcional: Operaciones morfológicas (descomentar si es necesario)
-            # kernel_morph = np.ones((3,3),np.uint8)
-            # final_mask_red = cv2.morphologyEx(final_mask_red, cv2.MORPH_OPEN, kernel_morph, iterations=1)
-            # final_mask_red = cv2.morphologyEx(final_mask_red, cv2.MORPH_CLOSE, kernel_morph, iterations=2)
 
             # 2. Encontrar Contornos
             contours, _ = cv2.findContours(final_mask_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -130,7 +118,6 @@ class NodoProcesadorImagen(Node):
 
                         rect_min_area = cv2.minAreaRect(cnt)
                         (box_w, box_h) = rect_min_area[1]
-                        # Asumimos que TAMANO_REAL_PUERTA_M se refiere a la altura o el lado más largo visible.
                         tamanio_aparente_pixels_para_dist = max(box_w, box_h)
 
                         distancia_m_calculada = calcular_distancia(tamanio_aparente_pixels_para_dist,
@@ -170,7 +157,7 @@ class NodoProcesadorImagen(Node):
                 cv2.putText(img_con_dibujos_bgr, info_text,
                             (closest_target['cx'] - 70, closest_target['cy'] - 20),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1, cv2.LINE_AA) # Amarillo
-            # --- Fin Lógica de Procesamiento ---
+            #Fin Lógica de Procesamiento
 
             # 5. Publicar Datos de Detección
             msg_datos_deteccion = Float32MultiArray()
@@ -223,7 +210,7 @@ def main(args=None):
             print(traceback.format_exc())
     finally:
         if nodo_procesador:
-            nodo_procesador.destroy_node() # Se llama automáticamente, pero explícito por claridad
+            nodo_procesador.destroy_node()
         if rclpy.ok():
             rclpy.shutdown()
         print("Programa NodoProcesadorImagen finalizado.")
