@@ -41,7 +41,7 @@ class NodoCamaraTello(Node):
             self.tello_conectado = True
             self.get_logger().info(f"Conectado. Batería: {self.tello.get_battery()}%")
 
-            if self.tello.get_battery() < 20:
+            if self.tello.get_battery() < 5:
                 self.get_logger().error("¡¡¡BATERÍA BAJA!!! No se despegará. Cancela y carga la batería.")
                 return 
 
@@ -129,7 +129,9 @@ class NodoCamaraTello(Node):
             lr, fb, ud, yv = int(msg.data[0]), int(msg.data[1]), int(msg.data[2]), int(msg.data[3])
             self.ultimo_comando_velocidad = [lr, fb, ud, yv] # Guardar para posible parada suave
             try:
-                self.tello.send_rc_control(lr, fb, ud, yv)
+                #self.tello.send_rc_control(lr, fb, ud, yv)
+                self.get_logger().info(f"Alineando: lr={lr:.2f}, fb={fb:.2f} ud={ud:.2f}, yv={yv:.2f}m", throttle_duration_sec=0.5)
+
             except Exception as e:
                 self.get_logger().error(f"Error enviando send_rc_control: {e}", throttle_duration_sec=2.0)
         else:

@@ -8,14 +8,14 @@ import cv2
 import numpy as np
 import traceback
 
-ROS_TOPIC_IMAGEN_RAW_INPUT = '/tello/imagen_raw' # Desde nodo_camara_tello
+ROS_TOPIC_IMAGEN_RAW_INPUT = '/tello/imagen_raw'
 ROS_TOPIC_IMAGEN_PROCESADA_OUTPUT = '/tello/imagen_procesada'
 ROS_TOPIC_DATOS_DETECCION_OUTPUT = '/tello/datos_deteccion'
 
 FRAME_WIDTH_PROC = 640
 FRAME_HEIGHT_PROC = 480
 
-TAMANO_REAL_PUERTA_M = 1.5      # Tamaño real del objeto en metros (altura o ancho)
+TAMANO_REAL_PUERTA_M = 0.3      # Tamaño real del objeto en metros (altura o ancho)
 DISTANCIA_FOCAL_PIXELS_TELLO = 920
 MIN_CONTOUR_AREA_TELLO = 200
 
@@ -89,10 +89,10 @@ class NodoProcesadorImagen(Node):
         try:
             #Inicio Lógica de Procesamiento
             img_proc_bgr = cv2.resize(current_frame_bgr_raw, (FRAME_WIDTH_PROC, FRAME_HEIGHT_PROC))
-            img_con_dibujos_bgr = img_proc_bgr.copy()
+            img_proc = cv2.cvtColor(img_proc_bgr, cv2.COLOR_BGR2RGB)
 
             # 1. Segmentación de Color Rojo usando HSV
-            img_hsv = cv2.cvtColor(img_proc_bgr, cv2.COLOR_BGR2HSV)
+            img_hsv = cv2.cvtColor(img_proc, cv2.COLOR_BGR2HSV)
             mask1_red = cv2.inRange(img_hsv, COLOR_LOWER_1, COLOR_UPPER_1)
             mask2_red = cv2.inRange(img_hsv, COLOR_LOWER_2, COLOR_UPPER_2)
             final_mask_red = cv2.bitwise_or(mask1_red, mask2_red)
@@ -150,11 +150,11 @@ class NodoProcesadorImagen(Node):
                 # Dibujar sobre img_con_dibujos_bgr
                 points = cv2.boxPoints(closest_target['rect_obj'])
                 points = np.intp(points)
-                cv2.drawContours(img_con_dibujos_bgr, [points], -1, (0, 255, 0), 2) # Verde
-                cv2.circle(img_con_dibujos_bgr, (closest_target['cx'], closest_target['cy']), 5, (0, 0, 255), -1) # Rojo
+                cv2.drawContours(img_proc, [points], -1, (0, 255, 0), 2) # Verde
+                cv2.circle(img_proc, (closest_target['cx'], closest_target['cy']), 5, (0, 0, 255), -1) # Rojo
 
                 info_text = f"D:{distancia_m_publicar:.1f}m X:{offset_x_norm_publicar:.2f} Y:{offset_y_norm_publicar:.2f}"
-                cv2.putText(img_con_dibujos_bgr, info_text,
+                cv2.putText(img_proc, info_text,
                             (closest_target['cx'] - 70, closest_target['cy'] - 20),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1, cv2.LINE_AA) # Amarillo
             #Fin Lógica de Procesamiento
@@ -172,7 +172,7 @@ class NodoProcesadorImagen(Node):
 
             # 6. Publicar Imagen Procesada (convertida a RGB8 para visualizadores estándar)
             try:
-                img_publish_rgb = cv2.cvtColor(img_con_dibujos_bgr, cv2.COLOR_BGR2RGB)
+                img_publish_rgb = cv2.cvtColor(img_proc, cv2.COLOR_BGR2RGB)
                 ros_image_msg_out = self.bridge.cv2_to_imgmsg(img_publish_rgb, encoding="rgb8")
                 ros_image_msg_out.header.stamp = msg_imagen_ros.header.stamp # Usar el mismo timestamp
                 ros_image_msg_out.header.frame_id = "tello_camera_processed_rgb"
