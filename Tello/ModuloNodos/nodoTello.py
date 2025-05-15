@@ -3,7 +3,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 from sensor_msgs.msg import Image
 from std_msgs.msg import Float32MultiArray
-from cv_bridge import CvBridge
+from cv_bridge import CvBridge, CvBridgeError
 from djitellopy import Tello
 import cv2
 import time
