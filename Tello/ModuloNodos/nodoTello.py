@@ -56,8 +56,8 @@ class NodoCamaraTello(Node):
             self.get_logger().info("Stream activado y frame_reader obtenido.")
             time.sleep(1.0) 
             self.get_logger().info("¡DESPEGANDO! Mantén el área despejada.")
-            # self.tello.takeoff() 
-            self.get_logger().info("Despegue simulado completado (takeoff() está comentado). Altura actual: N/A (simulado)")
+            self.tello.takeoff() 
+            self.get_logger().info("Despegue")
             self.despegue_realizado = True 
             time.sleep(2) 
 
@@ -129,8 +129,8 @@ class NodoCamaraTello(Node):
             lr, fb, ud, yv = int(msg.data[0]), int(msg.data[1]), int(msg.data[2]), int(msg.data[3])
             self.ultimo_comando_velocidad = [lr, fb, ud, yv] # Guardar para posible parada suave
             try:
-                #self.tello.send_rc_control(lr, fb, ud, yv)
-                self.get_logger().info(f"Alineando: lr={lr:.2f}, fb={fb:.2f} ud={ud:.2f}, yv={yv:.2f}m", throttle_duration_sec=0.5)
+                self.tello.send_rc_control(lr, fb, ud, yv)
+                #self.get_logger().info(f"Alineando: lr={lr:.2f}, fb={fb:.2f} ud={ud:.2f}, yv={yv:.2f}m", throttle_duration_sec=0.5)
 
             except Exception as e:
                 self.get_logger().error(f"Error enviando send_rc_control: {e}", throttle_duration_sec=2.0)
@@ -206,15 +206,12 @@ class NodoCamaraTello(Node):
                     self.get_logger().info("Comando de emergencia enviado.")
                 except Exception as e_emergency:
                     self.get_logger().error(f"Excepción durante tello.emergency(): {e_emergency}")
-                # Después de emergency(), el dron podría no responder a más comandos.
 
             elif self.despegue_realizado and aterrizar_normalmente : 
                 self.get_logger().info("Intentando aterrizar el Tello...")
                 try:
-                    # self.tello.land()
-                    self.get_logger().info("Comando de aterrizaje (land()) SIMULADO.")
-                    # En un dron real, esperarías a que el aterrizaje se complete.
-                    # time.sleep(5) # Espera simulada para aterrizaje
+                    self.tello.land()
+                    self.get_logger().info("Comando de aterrizaje.")
                 except Exception as e_land:
                     self.get_logger().error(f"Excepción durante tello.land(): {e_land}")
 

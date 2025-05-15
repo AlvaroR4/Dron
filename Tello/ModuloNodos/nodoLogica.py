@@ -12,15 +12,15 @@ ROS_TOPIC_COMANDOS_VELOCIDAD_OUTPUT = '/tello/comandos_velocidad' # Hacia nodo_c
 
 ARCHIVO_PASO_PUERTAS = "paso_puertas_tello_ros2.csv" 
 VELOCIDAD_AVANCE_TELLO = 30
-VELOCIDAD_LATERAL_TELLO = 35
-VELOCIDAD_VERTICAL_TELLO = 40
+VELOCIDAD_LATERAL_TELLO = 30
+VELOCIDAD_VERTICAL_TELLO = 30
 VELOCIDAD_YAW_TELLO = 0 
 
 # Márgenes de error para alineación (convertidos de offset normalizado a un factor)
 # O, más simple, usar los offsets normalizados directamente.
 # Por ahora, se usan los offsets normalizados directamente contra umbrales más pequeños.
-UMBRAL_OFFSET_X_ALINEADO = 0.08  # Equivalente a ~25px en 640px width (0.08 * 320)
-UMBRAL_OFFSET_Y_ALINEADO = 0.08  # Equivalente a ~19px en 480px height (0.08 * 240)
+UMBRAL_OFFSET_X_ALINEADO = 0.20  # Equivalente a ~25px en 640px width (0.08 * 320)
+UMBRAL_OFFSET_Y_ALINEADO = 0.20  # Equivalente a ~19px en 480px height (0.08 * 240)
 
 UMBRAL_OFFSET_X_AVANZANDO = 0.12 
 UMBRAL_OFFSET_Y_AVANZANDO = 0.12
@@ -196,9 +196,9 @@ class NodoControlLogica(Node):
                     lr = -VELOCIDAD_LATERAL_TELLO if offset_x_norm < 0 else VELOCIDAD_LATERAL_TELLO
                 
                 if not alineado_y:
-                    # Si offset_y_norm < 0 (obj arriba en imagen), dron debe bajar (ud negativo)
-                    # Si offset_y_norm > 0 (obj abajo en imagen), dron debe subir (ud positivo)
-                    ud = -VELOCIDAD_VERTICAL_TELLO if offset_y_norm < 0 else VELOCIDAD_VERTICAL_TELLO
+                    # Si offset_y_norm < 0 (obj arriba en imagen), dron debe subir (ud pos)
+                    # Si offset_y_norm > 0 (obj abajo en imagen), dron debe bajar (ud neg)
+                    ud = VELOCIDAD_VERTICAL_TELLO if offset_y_norm < 0 else -VELOCIDAD_VERTICAL_TELLO
                 
                 self.get_logger().info(f"Alineando: dx={offset_x_norm:.2f} (lr={lr}), dy={offset_y_norm:.2f} (ud={ud}), Dist={distancia_m:.2f}m", throttle_duration_sec=0.5)
 
@@ -232,7 +232,7 @@ class NodoControlLogica(Node):
                     if abs(offset_x_norm) > UMBRAL_OFFSET_X_AVANZANDO:
                         lr = -VELOCIDAD_LATERAL_TELLO if offset_x_norm < 0 else VELOCIDAD_LATERAL_TELLO
                     if abs(offset_y_norm) > UMBRAL_OFFSET_Y_AVANZANDO:
-                        ud = -VELOCIDAD_VERTICAL_TELLO if offset_y_norm < 0 else VELOCIDAD_VERTICAL_TELLO
+                        ud = VELOCIDAD_VERTICAL_TELLO if offset_y_norm < 0 else -VELOCIDAD_VERTICAL_TELLO
             else: # Objetivo NO detectado mientras avanzábamos
                 self.objetivo_perdido_contador += 1
                 self.get_logger().warn(f"Objetivo no detectado AVANZANDO ({self.objetivo_perdido_contador}/{CONTADOR_PERDIDO_MAX}).", throttle_duration_sec=1.0)
