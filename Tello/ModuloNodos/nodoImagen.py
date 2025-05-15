@@ -8,7 +8,6 @@ import cv2
 import numpy as np
 import traceback
 
-# --- Constantes de Visión (¡¡¡ CALIBRAR / AJUSTAR ESTAS !!!) ---
 # Topics ROS
 ROS_TOPIC_IMAGEN_RAW_INPUT = '/tello/imagen_raw' # Desde nodo_camara_tello
 ROS_TOPIC_IMAGEN_PROCESADA_OUTPUT = '/tello/imagen_procesada'

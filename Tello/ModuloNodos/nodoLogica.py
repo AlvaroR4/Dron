@@ -7,24 +7,22 @@ import datetime
 import csv
 import traceback
 
-# --- Constantes de Lógica de Movimiento (de moverTello_ANTIGUO.py) ---
 ROS_TOPIC_DATOS_DETECCION_INPUT = '/tello/datos_deteccion' # Desde nodo_procesador_imagen
 ROS_TOPIC_COMANDOS_VELOCIDAD_OUTPUT = '/tello/comandos_velocidad' # Hacia nodo_camara_tello
 
-ARCHIVO_PASO_PUERTAS = "paso_puertas_tello_ros2.csv" # Nombre de archivo diferente
-VELOCIDAD_AVANCE_TELLO = 30 # Ajustar según necesidad
+ARCHIVO_PASO_PUERTAS = "paso_puertas_tello_ros2.csv" 
+VELOCIDAD_AVANCE_TELLO = 30
 VELOCIDAD_LATERAL_TELLO = 35
 VELOCIDAD_VERTICAL_TELLO = 40
-VELOCIDAD_YAW_TELLO = 0 # Normalmente no se usa para pasar puertas frontales
+VELOCIDAD_YAW_TELLO = 0 
 
 # Márgenes de error para alineación (convertidos de offset normalizado a un factor)
-# Estos ahora son factores del offset normalizado. Podrías querer redefinirlos.
 # O, más simple, usar los offsets normalizados directamente.
 # Por ahora, se usan los offsets normalizados directamente contra umbrales más pequeños.
 UMBRAL_OFFSET_X_ALINEADO = 0.08  # Equivalente a ~25px en 640px width (0.08 * 320)
 UMBRAL_OFFSET_Y_ALINEADO = 0.08  # Equivalente a ~19px en 480px height (0.08 * 240)
 
-UMBRAL_OFFSET_X_AVANZANDO = 0.12 # Margen más amplio durante el avance
+UMBRAL_OFFSET_X_AVANZANDO = 0.12 
 UMBRAL_OFFSET_Y_AVANZANDO = 0.12
 
 CONTADOR_PERDIDO_MAX = 15       # Ciclos antes de declarar objetivo perdido
