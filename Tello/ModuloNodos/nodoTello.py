@@ -107,9 +107,9 @@ class NodoCamaraTello(Node):
         def on_press(key):
             try:
                 if key.char == 'f':
-                    if not self.parada_emergencia_solicitada and not self.aterrizaje_solicitado:
-                        self.get_logger().warn("Tecla 'f' presionada. ¡SOLICITANDO PARADA DE EMERGENCIA!")
-                        self.parada_emergencia_solicitada = True
+                    self.get_logger().warn("Tecla 'f' presionada. ¡SOLICITANDO PARADA DE EMERGENCIA!")
+                    self.tello.emergency()
+                    self.parada_emergencia_solicitada = True
             except AttributeError: # Teclas especiales (Ctrl, Shift, etc.)
                 pass
 
@@ -129,6 +129,7 @@ class NodoCamaraTello(Node):
             lr, fb, ud, yv = int(msg.data[0]), int(msg.data[1]), int(msg.data[2]), int(msg.data[3])
             self.ultimo_comando_velocidad = [lr, fb, ud, yv] # Guardar para posible parada suave
             try:
+                #self.tello.send_rc_control(0, 0, 0, 0)
                 self.tello.send_rc_control(lr, fb, ud, yv)
                 #self.get_logger().info(f"Alineando: lr={lr:.2f}, fb={fb:.2f} ud={ud:.2f}, yv={yv:.2f}m", throttle_duration_sec=0.5)
 
@@ -257,7 +258,8 @@ def main(args=None):
     except KeyboardInterrupt:
         if nodo_camara:
             nodo_camara.get_logger().info("Ctrl+C detectado. Solicitando aterrizaje normal.")
-            nodo_camara.aterrizaje_solicitado = True # Para que cleanup_recursos sepa que es un aterrizaje normal
+            nodo_camara.tello.emergency()
+            nodo_camara.aterrizaje_solicitado = True
         else:
             print("Ctrl+C detectado antes de inicializar el nodo completamente.")
     except RuntimeError as e_runtime:
