@@ -150,25 +150,19 @@ class NodoProcesadorImagen(Node):
                 ancho_rect, alto_rect = rect_min_area_obj[1]
                 angulo_raw_deg = rect_min_area_obj[2] # Ángulo de cv2.minAreaRect() en [-90, 0]
 
+                """
+                Vamos a suponer que la puerta siempre será mas alta que ancha, por lo tanto
+                corregiremos el valor si la puerta es mas ancha que alta, porque supondremos que lo ha visualizado mal
+                Si la puerta es más diferente y es mas ancha que alta, cambiar el < del if 
+                """
                 angulo_corregido_deg = 0.0
                 if ancho_rect < alto_rect: # Rectángulo está "de pie" (h > w)
-                    # angulo_raw_deg es la desviación del ancho respecto a la horizontal.
-                    # Si la puerta está vertical, su ancho es horizontal, angulo_raw_deg ~ 0.
-                    # Si angulo_raw_deg = -10, parte sup. puerta inclinada a la derecha.
                     angulo_corregido_deg = angulo_raw_deg 
-                else: # Rectángulo está "acostado" (w >= h)
-                    # angulo_raw_deg es la desviación de la altura (que es el ancho del rect) respecto a la horizontal.
-                    # Si la puerta está vertical, su altura es vertical, angulo_raw_deg ~ -90.
-                    # Sumamos 90 para que ~0 sea vertical.
+                else: # Rectángulo está "tumbado" (w >= h)
                     angulo_corregido_deg = angulo_raw_deg + 90.0
 
-                # angulo_corregido_deg ahora es ~0 si la puerta está bien orientada verticalmente.
-                # Positivo: parte superior puerta inclinada a la IZQUIERDA (anti-horario respecto a vertical del dron)
-                # Negativo: parte superior puerta inclinada a la DERECHA (horario respecto a vertical del dron)
-
-                # Determinar la corrección de yaw necesaria:
-                # Si angulo_corregido_deg > UMBRAL (ej. +10 deg, sup. a la izq), dron debe girar a la IZQUIERDA (yaw negativo). Publicar -1.
-                # Si angulo_corregido_deg < -UMBRAL (ej. -10 deg, sup. a la der), dron debe girar a la DERECHA (yaw positivo). Publicar 1.
+                # Si angulo_corregido_deg > UMBRAL, dron debe girar a la IZQUIERDA (yaw negativo). Publicar -1.
+                # Si angulo_corregido_deg < -UMBRAL, dron debe girar a la DERECHA (yaw positivo). Publicar 1.
                 if angulo_corregido_deg > UMBRAL_ANGULO_DEG:
                     correccion_angulo_publicar = -1.0 # Señal para girar a la izquierda
                 elif angulo_corregido_deg < -UMBRAL_ANGULO_DEG:
