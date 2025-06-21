@@ -15,16 +15,21 @@ ROS_TOPIC_DATOS_DETECCION_OUTPUT = '/tello/datos_deteccion'
 FRAME_WIDTH_PROC = 640
 FRAME_HEIGHT_PROC = 480
 
-TAMANO_REAL_PUERTA_M = 0.3      # Tamaño real del objeto en metros (altura o ancho)
+TAMANO_REAL_PUERTA_M = 0.65      # Tamaño real del objeto en metros (altura o ancho)
 DISTANCIA_FOCAL_PIXELS_TELLO = 920
 MIN_CONTOUR_AREA_TELLO = 200
-
+"""
 # Rangos HSV para ROJO 
 # El rojo a menudo cruza el límite 0/179 en el espacio HUE de OpenCV
 COLOR_LOWER_1 = np.array([0, 130, 90])
 COLOR_UPPER_1 = np.array([10, 255, 255])
 COLOR_LOWER_2 = np.array([160, 130, 90])
 COLOR_UPPER_2 = np.array([179, 255, 255])
+"""
+#Rangos para el azul
+COLOR_LOWER_1 = np.array([90, 50, 50])    # Tonalidad, Saturación, Valor (brillo) mínimos
+COLOR_UPPER_1 = np.array([120, 255, 255])  # Tonalidad, Saturación, Valor (brillo) máximos
+
 
 def calcular_distancia(tamanio_aparente_pixels, distancia_focal_pixels, tamano_real_objeto_m):
     if tamanio_aparente_pixels <= 1: # Evitar división por cero o valores muy pequeños
@@ -93,9 +98,12 @@ class NodoProcesadorImagen(Node):
 
             # 1. Segmentación de Color Rojo usando HSV
             img_hsv = cv2.cvtColor(img_proc, cv2.COLOR_BGR2HSV)
-            mask1_red = cv2.inRange(img_hsv, COLOR_LOWER_1, COLOR_UPPER_1)
-            mask2_red = cv2.inRange(img_hsv, COLOR_LOWER_2, COLOR_UPPER_2)
-            final_mask_red = cv2.bitwise_or(mask1_red, mask2_red)
+            final_mask_blue = cv2.inRange(img_hsv, COLOR_LOWER_1, COLOR_UPPER_1)
+            final_mask_red = final_mask_blue
+
+            #mask1_red = cv2.inRange(img_hsv, COLOR_LOWER_1, COLOR_UPPER_1)
+            #mask2_red = cv2.inRange(img_hsv, COLOR_LOWER_2, COLOR_UPPER_2)
+            #final_mask_red = cv2.bitwise_or(mask1_red, mask2_red)
 
             # 2. Encontrar Contornos
             contours, _ = cv2.findContours(final_mask_red, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)

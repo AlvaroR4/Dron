@@ -11,24 +11,24 @@ ROS_TOPIC_DATOS_DETECCION_INPUT = '/tello/datos_deteccion' # Desde nodo_procesad
 ROS_TOPIC_COMANDOS_VELOCIDAD_OUTPUT = '/tello/comandos_velocidad' # Hacia nodo_camara_tello
 
 ARCHIVO_PASO_PUERTAS = "paso_puertas_tello_ros2.csv" 
-VELOCIDAD_AVANCE_TELLO = 20
-VELOCIDAD_LATERAL_TELLO = 20
-VELOCIDAD_VERTICAL_TELLO = 20
+VELOCIDAD_AVANCE_TELLO = 40
+VELOCIDAD_LATERAL_TELLO = 30
+VELOCIDAD_VERTICAL_TELLO = 30
 VELOCIDAD_YAW_TELLO = 0 
 
 # Márgenes de error para alineación (convertidos de offset normalizado a un factor)
 # O, más simple, usar los offsets normalizados directamente.
 # Por ahora, se usan los offsets normalizados directamente contra umbrales más pequeños.
-UMBRAL_OFFSET_X_ALINEADO = 0.15  # Equivalente a ~25px en 640px width (0.08 * 320)
-UMBRAL_OFFSET_Y_ALINEADO = 0.15  # Equivalente a ~19px en 480px height (0.08 * 240)
+UMBRAL_OFFSET_X_ALINEADO = 0.09  # Equivalente a ~25px en 640px width (0.08 * 320)
+UMBRAL_OFFSET_Y_ALINEADO = 0.09  # Equivalente a ~19px en 480px height (0.08 * 240)
 
-UMBRAL_OFFSET_X_AVANZANDO = 0.08 
-UMBRAL_OFFSET_Y_AVANZANDO = 0.08
+UMBRAL_OFFSET_X_AVANZANDO = 0.02
+UMBRAL_OFFSET_Y_AVANZANDO = 0.02
 
 CONTADOR_PERDIDO_MAX = 15       # Ciclos antes de declarar objetivo perdido
 DISTANCIA_UMBRAL_CERCA = 1.5    # Metros, para considerar que estamos "cerca" de la puerta
 UMBRAL_AUMENTO_DIST = 0.5       # Metros, aumento de distancia para confirmar paso
-TIEMPO_AVANCE_EXTRA_SEGS = 2.0  # Segundos de avance extra tras pasar puerta
+TIEMPO_AVANCE_EXTRA_SEGS = 4.0  # Segundos de avance extra tras pasar puerta
 CONTADOR_BUSQUEDA_MAX = 120     # Ciclos de búsqueda antes de rendirse (aprox. 120 * (1/frec_control) segs)
 
 # Estados de la Misión

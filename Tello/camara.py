@@ -17,6 +17,10 @@ TELLO_IP = '192.168.10.1' # IP por defecto del Tello en modo AP
 ROS_TOPIC_OUTPUT = '/tello/image_raw' # Topic donde se publicarán las imágenes
 TIMER_PERIOD = 1.0 / 30.0 # Periodo del temporizador en segundos (aprox. 30 FPS)
 
+
+FRAME_WIDTH_PROC = 640
+FRAME_HEIGHT_PROC = 480
+
 class TelloImagePublisher(Node):
     def __init__(self):
         super().__init__('tello_image_publisher')
@@ -100,13 +104,16 @@ class TelloImagePublisher(Node):
             # Convertir frame de OpenCV (BGR) a mensaje ROS Image
             # El frame del Tello viene en BGR
             ros_image_msg = self.bridge.cv2_to_imgmsg(frame, encoding="bgr8")
+            img_proc_bgr = cv2.resize(ros_image_msg, (FRAME_WIDTH_PROC, FRAME_HEIGHT_PROC))
+            img_proc = cv2.cvtColor(img_proc_bgr, cv2.COLOR_BGR2RGB)
+
             
             # Añadir timestamp al mensaje ROS
-            ros_image_msg.header.stamp = self.get_clock().now().to_msg()
-            ros_image_msg.header.frame_id = "tello_camera" # Opcional: nombre del frame
+            img_proc.header.stamp = self.get_clock().now().to_msg()
+            img_proc.header.frame_id = "tello_camera" # Opcional: nombre del frame
             
             # Publicar el mensaje
-            self.image_publisher_.publish(ros_image_msg)
+            self.image_publisher_.publish(img_proc)
             self.get_logger().debug("Frame publicado en ROS.", throttle_duration_sec=1.0) # Debug para no saturar
 
         except CvBridgeError as e:
