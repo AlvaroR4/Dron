@@ -1,0 +1,231 @@
+Guía Rápida de la Biblioteca djitellopy
+
+---PAGINA---
+https://djitellopy.readthedocs.io/en/latest/tello/
+----
+
+1. Introducción y Propósito
+djitellopy es una biblioteca de Python que simplifica enormemente la comunicación y el control de los drones DJI Tello y Tello EDU. Abstrae los detalles del protocolo UDP subyacente, proporcionando una API (Interfaz de Programación de Aplicaciones) fácil de usar para enviar comandos, recibir telemetría y gestionar el stream de vídeo del dron.
+
+Objetivo Principal: Facilitar el desarrollo de aplicaciones personalizadas para el Tello usando Python, como vuelo autónomo simple, control por gestos, seguimiento de objetos, etc.
+
+2. Instalación
+La instalación se realiza fácilmente usando pip:
+
+Bash
+
+pip install djitellopy
+Asegúrate de tener Python 3 instalado. Puede requerir dependencias adicionales como numpy y opencv-python (si usas la captura de video integrada) y ffmpeg (para la decodificación de vídeo).
+
+3. Conexión y Desconexión
+El primer paso es crear una instancia de la clase Tello y conectarse al dron (asegúrate de que tu PC está conectado a la red WiFi del Tello):
+
+Python
+
+from djitellopy import Tello
+
+# Crear instancia
+mi_tello = Tello()
+
+# Conectar (Inicia comunicación y pone el dron en modo SDK)
+try:
+    mi_tello.connect()
+    print("¡Conectado al Tello!")
+    print(f"Batería: {mi_tello.get_battery()}%")
+except Exception as e:
+    print(f"Error al conectar: {e}")
+    # Aquí podrías decidir salir del script si la conexión falla
+
+# (...) Aquí va el resto de tu código para controlar el dron
+
+# Desconectar al finalizar (Libera recursos)
+try:
+    mi_tello.end()
+    print("Desconectado del Tello.")
+except Exception as e:
+    print(f"Error al desconectar: {e}")
+4. Despegue y Aterrizaje
+Comandos básicos para iniciar y finalizar el vuelo:
+
+Python
+
+# Despegar (el dron sube a una altura predeterminada)
+mi_tello.takeoff()
+print("Despegando...")
+# Es buena idea esperar un poco después de despegar
+# import time; time.sleep(5)
+
+# (...) Vuelo
+
+# Aterrizar (el dron desciende y apaga motores)
+mi_tello.land()
+print("Aterrizando...")
+5. Comandos de Movimiento Básico (Distancia Fija)
+Permiten mover el dron una distancia específica en centímetros (cm) o girar un ángulo específico en grados. Importante: Estos comandos son bloqueantes, el script esperará a que el dron complete (o crea que ha completado) el movimiento.
+
+Movimiento Lineal: (Distancia entre 20 y 500 cm)
+Python
+
+mi_tello.move_forward(100) # Mover 100 cm hacia adelante
+mi_tello.move_back(50)     # Mover 50 cm hacia atrás
+mi_tello.move_left(30)     # Mover 30 cm hacia la izquierda
+mi_tello.move_right(30)    # Mover 30 cm hacia la derecha
+mi_tello.move_up(70)       # Mover 70 cm hacia arriba
+mi_tello.move_down(40)     # Mover 40 cm hacia abajo
+Rotación (Yaw): (Ángulo entre 1 y 360 grados)
+Python
+
+mi_tello.rotate_clockwise(90)        # Girar 90 grados en sentido horario
+mi_tello.rotate_counter_clockwise(180) # Girar 180 grados en sentido antihorario
+Volteretas (Flips): (Requiere batería > 50%)
+Python
+
+# Cuidado: Requiere espacio suficiente
+mi_tello.flip_forward()
+mi_tello.flip_back()
+mi_tello.flip_left()
+mi_tello.flip_right()
+6. Control Continuo (RC - Radio Control)
+Este es el método más versátil para un control dinámico, similar a usar un mando a distancia virtual. Permite especificar velocidades continuas en los 4 ejes. No es bloqueante: Envías el comando y el dron mantiene esa velocidad hasta que envíes otro comando send_rc_control (incluyendo uno con todo a cero para detenerse).
+
+Python
+
+# tello.send_rc_control(left_right_velocity,
+#                      forward_backward_velocity,
+#                      up_down_velocity,
+#                      yaw_velocity)
+
+# Argumentos: velocidad en cada eje, rango de -100 a 100.
+#             Unidades aproximadas: cm/s (aunque la respuesta real puede variar)
+
+# Ejemplo: Moverse adelante y un poco a la derecha, subiendo lentamente
+lr = 20  # Derecha (+)
+fb = 35  # Adelante (+)
+ud = 15  # Arriba (+)
+yv = 0   # Sin rotación
+mi_tello.send_rc_control(lr, fb, ud, yv)
+
+# ¡Importante! Para detener el movimiento RC, envía ceros:
+mi_tello.send_rc_control(0, 0, 0, 0)
+Ejes RC:
+
+left_right_velocity (lr): Negativo = Izquierda, Positivo = Derecha
+forward_backward_velocity (fb): Negativo = Atrás, Positivo = Adelante
+up_down_velocity (ud): Negativo = Abajo, Positivo = Arriba
+yaw_velocity (yv): Negativo = Rotación Antihoraria, Positivo = Rotación Horaria
+7. Obtención de Telemetría (Sensores)
+El Tello proporciona varios datos de estado y sensores. Nota: El Tello estándar no tiene GPS, por lo que no puede proporcionar coordenadas globales.
+
+Python
+
+# Nivel de batería (%)
+bateria = mi_tello.get_battery()
+print(f"Batería: {bateria}%")
+
+# Altura desde el suelo (cm) - Usa barómetro
+altura = mi_tello.get_height()
+print(f"Altura: {altura} cm")
+
+# Tiempo de vuelo (segundos)
+tiempo_vuelo = mi_tello.get_flight_time()
+print(f"Tiempo de vuelo: {tiempo_vuelo} s")
+
+# Temperatura (°C)
+temp = mi_tello.get_temperature()
+print(f"Temperatura: {temp}°C")
+
+# Actitud (Roll, Pitch, Yaw en grados)
+actitud = mi_tello.get_attitude() # Devuelve un diccionario {'roll': ?, 'pitch': ?, 'yaw': ?}
+print(f"Actitud: {actitud}")
+
+# Velocidad relativa (cm/s) - Puede no ser muy precisa
+vel_x = mi_tello.get_speed_x() # Adelante/Atrás
+vel_y = mi_tello.get_speed_y() # Izquierda/Derecha
+vel_z = mi_tello.get_speed_z() # Arriba/Abajo
+print(f"Velocidad (X,Y,Z): ({vel_x}, {vel_y}, {vel_z})")
+
+# Aceleración (cm/s^2) - Puede no ser muy precisa
+accel = mi_tello.get_acceleration() # Devuelve {'x': ?, 'y': ?, 'z': ?}
+print(f"Aceleración: {accel}")
+
+# Distancia del sensor ToF (Time of Flight) (cm) - Si está disponible (Tello EDU) y funciona
+try:
+    tof_dist = mi_tello.get_distance_tof()
+    print(f"Distancia ToF: {tof_dist} cm")
+except Exception as e:
+    print(f"No se pudo leer ToF (¿No disponible?): {e}")
+
+# Barómetro (cm) - Lectura directa del sensor
+baro = mi_tello.get_barometer()
+print(f"Lectura barómetro: {baro} cm")
+8. Streaming de Video
+Permite recibir y procesar los frames de la cámara del Tello. djitellopy incluye un mecanismo que lee los frames en un hilo separado para no bloquear tu código principal.
+
+Python
+
+# Iniciar el stream de vídeo
+mi_tello.streamon()
+print("Stream de vídeo iniciado.")
+
+# Obtener el objeto lector de frames (que corre en segundo plano)
+lector_frames = mi_tello.get_frame_read()
+
+# Bucle para leer y procesar frames (ejemplo con OpenCV)
+import cv2
+import time
+
+while True:
+    # Obtener el frame más reciente leído por el hilo de fondo
+    frame_actual = lector_frames.frame
+
+    if frame_actual is None:
+        print("Esperando frame...")
+        time.sleep(0.1)
+        continue
+
+    # Aquí puedes procesar el 'frame_actual' con OpenCV
+    cv2.imshow("Video Tello", frame_actual)
+
+    # Salir con la tecla 'q'
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# Detener el stream y cerrar ventanas al final
+cv2.destroyAllWindows()
+mi_tello.streamoff()
+print("Stream de vídeo detenido.")
+9. Comandos Avanzados/Directos
+Permiten enviar comandos del SDK de Tello directamente como strings. Útil para comandos no implementados directamente en djitellopy o para configuraciones específicas.
+
+send_command_without_return(command): Envía un comando que no devuelve un valor (la mayoría de comandos de acción como takeoff, land, forward X, etc.). No espera respuesta.
+send_command_with_return(command): Envía un comando que devuelve un valor (la mayoría de comandos get_... como battery?, height?). Espera y devuelve la respuesta como string. La biblioteca usa esto internamente para los métodos get_...().
+Python
+
+# Ejemplo: Poner el Tello en modo estación WiFi (¡Avanzado!)
+# mi_tello.send_command_without_return("ap TU_SSID TU_PASSWORD")
+
+# Ejemplo: Obtener la versión del SDK (devuelve un valor)
+# version_sdk = mi_tello.send_command_with_return("sdk?")
+# print(f"Versión SDK Tello: {version_sdk}")
+10. Parada de Emergencia
+¡¡USAR CON EXTREMA PRECAUCIÓN!! Este comando corta inmediatamente la alimentación de los motores, haciendo que el dron caiga libremente. Solo debe usarse en situaciones de peligro inminente para evitar daños mayores.
+
+Python
+
+# ¡PELIGRO! CORTA MOTORES AL INSTANTE
+mi_tello.emergency()
+print("¡¡¡COMANDO DE EMERGENCIA ENVIADO!!!")
+11. Sistema de Coordenadas
+El Tello opera principalmente en un sistema de coordenadas relativo al cuerpo (body frame):
+
+Eje X: Positivo hacia adelante, Negativo hacia atrás.
+Eje Y: Positivo hacia la derecha, Negativo hacia la izquierda.
+Eje Z: Positivo hacia arriba, Negativo hacia abajo.
+Yaw: Rotación alrededor del eje Z. Positivo en sentido horario.
+Los comandos move_* y send_rc_control funcionan según esta convención. La altura (get_height) es relativa al punto de despegue o al suelo detectado.
+
+12. Consideraciones Adicionales
+Retrasos (Latencia): Existe un retraso inevitable entre enviar un comando y que el dron lo ejecute, así como en la recepción de telemetría y vídeo, debido a la comunicación WiFi. Tenlo en cuenta en aplicaciones de control rápido.
+Precisión: El Tello es un dron de bajo coste y su precisión en el posicionamiento y movimiento no es comparable a drones más caros con GPS. Los sensores (barómetro, IMU) tienen ruido y deriva.
+Batería: El rendimiento del dron (velocidad, estabilidad, capacidad de hacer flips) puede verse afectado por el nivel de batería. Monitorízala (get_battery()).
+Entorno: El viento, las condiciones de luz (para el posicionamiento visual interno y el ToF) y las interferencias WiFi pueden afectar significativamente al vuelo.
