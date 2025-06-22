@@ -65,10 +65,13 @@ class TelloImagePublisher(Node):
             return # Salir del callback si no hay frame
 
         img_proc_bgr = cv2.resize(frame, (FRAME_WIDTH_PROC, FRAME_HEIGHT_PROC))
-        img_proc_rgb = cv2.cvtColor(img_proc_bgr, cv2.COLOR_BGR2RGB) #
+        img_proc_rgb = cv2.cvtColor(img_proc_bgr, cv2.COLOR_BGR2RGB)
+        img_publish_rgb = cv2.cvtColor(img_proc_rgb, cv2.COLOR_BGR2RGB)
+
+
         
         # Publicamos en RGB
-        ros_image_msg = self.bridge.cv2_to_imgmsg(img_proc_rgb, encoding="rgb8")
+        ros_image_msg = self.bridge.cv2_to_imgmsg(img_publish_rgb, encoding="rgb8")
         
         # Añadir timestamp y frame_id al mensaje ROS
         ros_image_msg.header.stamp = self.get_clock().now().to_msg()

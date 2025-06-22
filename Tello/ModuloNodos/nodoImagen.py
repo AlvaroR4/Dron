@@ -27,7 +27,7 @@ COLOR_LOWER_2 = np.array([160, 130, 90])
 COLOR_UPPER_2 = np.array([179, 255, 255])
 """
 #Rangos para el azul
-COLOR_LOWER_1 = np.array([90, 50, 50])    
+COLOR_LOWER_1 = np.array([60, 50, 50])    
 COLOR_UPPER_1 = np.array([120, 255, 255]) 
 
 
