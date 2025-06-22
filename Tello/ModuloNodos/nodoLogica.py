@@ -16,9 +16,6 @@ VELOCIDAD_LATERAL_TELLO = 30
 VELOCIDAD_VERTICAL_TELLO = 30
 VELOCIDAD_YAW_TELLO = 0 
 
-# Márgenes de error para alineación (convertidos de offset normalizado a un factor)
-# O, más simple, usar los offsets normalizados directamente.
-# Por ahora, se usan los offsets normalizados directamente contra umbrales más pequeños.
 UMBRAL_OFFSET_X_ALINEADO = 0.09  # Equivalente a ~25px en 640px width (0.08 * 320)
 UMBRAL_OFFSET_Y_ALINEADO = 0.09  # Equivalente a ~19px en 480px height (0.08 * 240)
 
@@ -47,9 +44,9 @@ estado_nombres = {
     ESTADO_MISION_COMPLETA: "MISION_COMPLETADA", ESTADO_ERROR: "ERROR_EN_MISION"
 }
 
-class NodoControlLogica(Node):
+class NodoLogica(Node):
     def __init__(self):
-        super().__init__('nodo_control_logica')
+        super().__init__('nodo_logica_logica')
         self.get_logger().info("Iniciando Nodo de Control y Lógica de Misión.")
 
         # Estado inicial y variables de lógica
@@ -95,8 +92,7 @@ class NodoControlLogica(Node):
         except Exception as e_csv:
             self.get_logger().error(f"No se pudo inicializar el archivo CSV: {e_csv}")
         
-        # Transición inicial de estado
-        self.cambiar_estado(ESTADO_BUSCANDO) # Empezar a buscar directamente
+        self.cambiar_estado(ESTADO_BUSCANDO) 
 
 
     def escribir_log_csv(self, datos_fila):
@@ -155,7 +151,7 @@ class NodoControlLogica(Node):
             else:
                 self.ciclos_sin_objetivo_buscando += 1
                 # self.get_logger().info(f"Buscando siguiente puerta... (Ciclo sin objetivo: {self.ciclos_sin_objetivo_buscando}/{CONTADOR_BUSQUEDA_MAX})", throttle_duration_sec=2.0)
-                if self.ciclos_sin_objetivo_buscando % 30 == 0 : # Log every ~1 second if 30Hz
+                if self.ciclos_sin_objetivo_buscando % 30 == 0 : 
                     self.get_logger().info(f"Buscando siguiente puerta... (Ciclo {self.ciclos_sin_objetivo_buscando}/{CONTADOR_BUSQUEDA_MAX})")
 
 
@@ -282,7 +278,7 @@ class NodoControlLogica(Node):
 
 
     def destroy_node(self):
-        self.get_logger().info("Destruyendo NodoControlLogica...")
+        self.get_logger().info("Destruyendo NodoLogica...")
         # Asegurar que se envía un último comando de parada si el nodo se cierra inesperadamente
         self.publicar_velocidades(0,0,0,0)
         self.get_logger().info("Último comando de parada enviado.")
@@ -291,28 +287,28 @@ class NodoControlLogica(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    nodo_control = None
+    nodo_logica = None
     try:
-        nodo_control = NodoControlLogica()
-        rclpy.spin(nodo_control)
+        nodo_logica = NodoLogica()
+        rclpy.spin(nodo_logica)
     except KeyboardInterrupt:
-        if nodo_control:
-            nodo_control.get_logger().info("Ctrl+C detectado, cerrando NodoControlLogica.")
+        if nodo_logica:
+            nodo_logica.get_logger().info("Ctrl+C detectado, cerrando NodoLogica.")
         else:
-            print("Ctrl+C detectado antes de inicializar NodoControlLogica.")
+            print("Ctrl+C detectado antes de inicializar NodoLogica.")
     except Exception as e_main:
-        if nodo_control:
-            nodo_control.get_logger().fatal(f"Error inesperado en main de NodoControlLogica: {e_main}")
-            nodo_control.get_logger().fatal(traceback.format_exc())
+        if nodo_logica:
+            nodo_logica.get_logger().fatal(f"Error inesperado en main de NodoLogica: {e_main}")
+            nodo_logica.get_logger().fatal(traceback.format_exc())
         else:
-            print(f"Error inesperado en main antes de inicializar NodoControlLogica: {e_main}")
+            print(f"Error inesperado en main antes de inicializar NodoLogica: {e_main}")
             print(traceback.format_exc())
     finally:
-        if nodo_control:
-            nodo_control.destroy_node()
+        if nodo_logica:
+            nodo_logica.destroy_node()
         if rclpy.ok():
             rclpy.shutdown()
-        print("Programa NodoControlLogica finalizado.")
+        print("Programa NodoLogica finalizado.")
 
 if __name__ == '__main__':
     main()
