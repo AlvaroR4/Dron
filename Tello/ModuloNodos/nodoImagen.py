@@ -15,7 +15,7 @@ ROS_TOPIC_DATOS_DETECCION_OUTPUT = '/tello/datos_deteccion'
 FRAME_WIDTH_PROC = 640
 FRAME_HEIGHT_PROC = 480
 
-TAMANO_REAL_PUERTA_M = 0.65      # Tamaño real del objeto en metros (altura o ancho)
+TAMANO_REAL_PUERTA_M = 0.35      # Tamaño real del objeto en metros (altura o ancho)
 DISTANCIA_FOCAL_PIXELS_TELLO = 920
 MIN_CONTOUR_AREA_TELLO = 200
 """

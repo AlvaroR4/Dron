@@ -23,6 +23,7 @@ class NodoTello(Node):
         self.bridge = CvBridge()
         self.tello = Tello(host=TELLO_IP)
         self.frame_reader = None 
+        self.parada_emergencia_activa = False
 
         self.get_logger().info("Conectando al Tello ")
         self.tello.connect()
@@ -109,7 +110,6 @@ class NodoTello(Node):
         if self.timer_camara:
             self.timer_camara.cancel()
 
-        self.listener_teclado.stop() 
         self.cleanup_recursos()
         super().destroy_node()
 
@@ -120,7 +120,7 @@ def main(args=None):
         rclpy.spin(nodo_tello)
     except KeyboardInterrupt:
         nodo_tello.parada_emergencia_activa = True
-        nodo_tello.tello.emergency()
+        nodo_tello.tello.land()
         nodo_tello.get_logger().info("Ctrl+C detectado. Iniciando cierre del nodo.")
     finally:
         nodo_tello.destroy_node()
