@@ -27,18 +27,18 @@ COLOR_LOWER_2 = np.array([160, 130, 90])
 COLOR_UPPER_2 = np.array([179, 255, 255])
 """
 #Rangos para el azul
-COLOR_LOWER_1 = np.array([90, 50, 50])    # Tonalidad, Saturación, Valor (brillo) mínimos
-COLOR_UPPER_1 = np.array([120, 255, 255])  # Tonalidad, Saturación, Valor (brillo) máximos
+COLOR_LOWER_1 = np.array([90, 50, 50])    
+COLOR_UPPER_1 = np.array([120, 255, 255]) 
 
 
 def calcular_distancia(tamanio_aparente_pixels, distancia_focal_pixels, tamano_real_objeto_m):
-    if tamanio_aparente_pixels <= 1: # Evitar división por cero o valores muy pequeños
+    if tamanio_aparente_pixels <= 1:
         return float('inf')
     return (tamano_real_objeto_m * distancia_focal_pixels) / tamanio_aparente_pixels
 
-class NodoProcesadorImagen(Node):
+class NodoImagen(Node):
     def __init__(self):
-        super().__init__('nodo_procesador_imagen')
+        super().__init__('nodo_imagen_imagen')
         self.get_logger().info("Iniciando Nodo Procesador de Imagen.")
         self.bridge = CvBridge()
 
@@ -56,7 +56,7 @@ class NodoProcesadorImagen(Node):
         )
         self.get_logger().info(f"Suscrito a imagen RAW en: {ROS_TOPIC_IMAGEN_RAW_INPUT}")
 
-        # Publicador para la imagen procesada (RGB con detecciones)
+        # Publicador para la imagen procesada
         qos_profile_pub_img = QoSProfile(
             reliability=ReliabilityPolicy.BEST_EFFORT,
             history=HistoryPolicy.KEEP_LAST,
@@ -68,7 +68,7 @@ class NodoProcesadorImagen(Node):
 
         # Publicador para los datos de detección
         qos_profile_pub_data = QoSProfile(
-            reliability=ReliabilityPolicy.RELIABLE, # Los datos de detección son importantes
+            reliability=ReliabilityPolicy.RELIABLE,
             history=HistoryPolicy.KEEP_LAST,
             depth=10
         )
@@ -195,33 +195,33 @@ class NodoProcesadorImagen(Node):
             self.get_logger().error(traceback.format_exc())
 
     def destroy_node(self):
-        self.get_logger().info("Destruyendo NodoProcesadorImagen...")
+        self.get_logger().info("Destruyendo NodoImagen...")
         super().destroy_node()
 
 def main(args=None):
     rclpy.init(args=args)
-    nodo_procesador = None
+    nodo_imagen = None
     try:
-        nodo_procesador = NodoProcesadorImagen()
-        rclpy.spin(nodo_procesador)
+        nodo_imagen = NodoImagen()
+        rclpy.spin(nodo_imagen)
     except KeyboardInterrupt:
-        if nodo_procesador:
-            nodo_procesador.get_logger().info("Ctrl+C detectado, cerrando NodoProcesadorImagen.")
+        if nodo_imagen:
+            nodo_imagen.get_logger().info("Ctrl+C detectado, cerrando NodoImagen.")
         else:
-            print("Ctrl+C detectado antes de inicializar NodoProcesadorImagen.")
+            print("Ctrl+C detectado antes de inicializar NodoImagen.")
     except Exception as e_main:
-        if nodo_procesador:
-            nodo_procesador.get_logger().fatal(f"Error inesperado en main de NodoProcesadorImagen: {e_main}")
-            nodo_procesador.get_logger().fatal(traceback.format_exc())
+        if nodo_imagen:
+            nodo_imagen.get_logger().fatal(f"Error inesperado en main de NodoImagen: {e_main}")
+            nodo_imagen.get_logger().fatal(traceback.format_exc())
         else:
-            print(f"Error inesperado en main antes de inicializar NodoProcesadorImagen: {e_main}")
+            print(f"Error inesperado en main antes de inicializar NodoImagen: {e_main}")
             print(traceback.format_exc())
     finally:
-        if nodo_procesador:
-            nodo_procesador.destroy_node()
+        if nodo_imagen:
+            nodo_imagen.destroy_node()
         if rclpy.ok():
             rclpy.shutdown()
-        print("Programa NodoProcesadorImagen finalizado.")
+        print("Programa NodoImagen finalizado.")
 
 if __name__ == '__main__':
     main()
