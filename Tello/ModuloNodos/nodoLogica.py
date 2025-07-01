@@ -12,8 +12,8 @@ ROS_TOPIC_COMANDOS_VELOCIDAD_OUTPUT = '/tello/comandos_velocidad' # Hacia nodo_c
 
 ARCHIVO_PASO_PUERTAS = "paso_puertas_tello_ros2.csv" 
 VELOCIDAD_AVANCE_TELLO = 20
-VELOCIDAD_LATERAL_TELLO = 10
-VELOCIDAD_VERTICAL_TELLO = 10
+VELOCIDAD_LATERAL_TELLO = 10 #MAXIMO 20!!!!
+VELOCIDAD_VERTICAL_TELLO = 10 #MAXIMO 20!!,!
 VELOCIDAD_YAW_TELLO = 0 
 
 UMBRAL_OFFSET_X_ALINEADO = 0.06  # Equivalente a ~25px en 640px width (0.08 * 320)
@@ -160,7 +160,7 @@ class NodoLogica(Node):
                         self.get_logger().info("No se encontraron más puertas tras búsqueda. Misión completada.")
                         self.cambiar_estado(ESTADO_MISION_COMPLETA)
                     else:
-                        self.get_logger().warn("No se encontró ni la primera puerta tras búsqueda. Revisar entorno/detección.")
+                        self.get_logger().warn("No se encontró ni la primera puerta tras búsqueda.")
                         self.cambiar_estado(ESTADO_ERROR) 
                         
                 # AQUÍ SE PODRÍA IMPLEMENTAR COSAS COMO GIRAR EL DRON PARA BUSCAR
@@ -189,12 +189,52 @@ class NodoLogica(Node):
 
                 if not alineado_x:
                     # Si offset_x_norm < 0 (obj a la izq), dron debe ir a la izq (lr negativo)
-                    lr = -VELOCIDAD_LATERAL_TELLO if offset_x_norm < 0 else VELOCIDAD_LATERAL_TELLO
+                    neg = offset_x_norm < 0
+                    offset_x_norm = abs(offset_x_norm)
+                    
+                    if offset_x_norm <= 1 and offset_x_norm > 0.8
+                    	lr = VELOCIDAD_LATERAL_TELLO *5
+                    elif offset_x_norm <= 0.8 and offset_x_norm > 0.6
+                        lr = VELOCIDAD_LATERAL_TELLO *4
+                    elif offset_x_norm <= 0.6 and offset_x_norm > 0.4
+                        lr = VELOCIDAD_LATERAL_TELLO *3
+                    elif offset_x_norm <= 0.4 and offset_x_norm > 0.2
+                        lr = VELOCIDAD_LATERAL_TELLO *2
+                    elif offset_x_norm <= 0.2and offset_x_norm > 0
+                        lr = VELOCIDAD_LATERAL_TELLO *1
+                    else
+                        lr = VELOCIDAD_LATERAL_TELLO
+                    
+                    lr = -VELOCIDAD_LATERAL_TELLO if neg 
+                    
+                        
+                    #lr = -VELOCIDAD_LATERAL_TELLO if offset_x_norm < 0 else VELOCIDAD_LATERAL_TELLO
+                        
+                    
                 
                 if not alineado_y:
                     # Si offset_y_norm < 0 (obj arriba en imagen), dron debe subir (ud pos)
                     # Si offset_y_norm > 0 (obj abajo en imagen), dron debe bajar (ud neg)
-                    ud = VELOCIDAD_VERTICAL_TELLO if offset_y_norm < 0 else -VELOCIDAD_VERTICAL_TELLO
+                    
+                    neg = offset_y_norm < 0
+                    offset_y_norm = abs(offset_y_norm)
+                    
+                    if offset_y_norm <= 1 and offset_y_norm > 0.8
+                    	ud = VELOCIDAD_VERTICAL_TELLO *5
+                    elif offset_y_norm <= 0.8 and offset_y_norm > 0.6
+                        ud = VELOCIDAD_VERTICAL_TELLO *4
+                    elif offset_y_norm <= 0.6 and offset_y_norm > 0.4
+                        ud = VELOCIDAD_VERTICAL_TELLO *3
+                    elif offset_y_norm <= 0.4 and offset_y_norm > 0.2
+                        ud = VELOCIDAD_VERTICAL_TELLO *2
+                    elif offset_y_norm <= 0.2and offset_y_norm > 0
+                        ud = VELOCIDAD_VERTICAL_TELLO *1
+                    else
+                        lr = VELOCIDAD_VERTICAL_TELLO
+                    
+                    ud = -VELOCIDAD_VERTICAL_TELLO if neg 
+                    
+                    #ud = VELOCIDAD_VERTICAL_TELLO if offset_y_norm < 0 else -VELOCIDAD_VERTICAL_TELLO
                 
                 self.get_logger().info(f"Alineando: dx={offset_x_norm:.2f} (lr={lr}), dy={offset_y_norm:.2f} (ud={ud}), Dist={distancia_m:.2f}m", throttle_duration_sec=0.5)
 
