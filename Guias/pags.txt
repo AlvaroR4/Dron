@@ -15,3 +15,9 @@ https://www.youtube.com/watch?v=ZfiJhiA1ksA
 https://review.px4.io/
 
 https://alabenle.net/tecbolivia/index.php/articulos-y-tutoriales-microcontroladores/104-aplicacion-de-seguimiento-de-objetos-con-drones?
+
+---Tello con PI
+https://github.com/erviveksoni/raspberrypi-controlled-tello
+
+---Tello ROS2
+https://github.com/clydemcqueen/tello_ros/tree/master
